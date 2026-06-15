@@ -1,0 +1,38 @@
+{
+  "name": "Pegi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "",
+  "theme_color": "",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "",
+      "type": "image/png",
+      "sizes": "72x72"
+    },
+    {
+      "src": "",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "",
+      "sizes": "2527x1285",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "",
+      "sizes": "459x1024",
+      "type": "image/png"
+    }
+  ]
+}
