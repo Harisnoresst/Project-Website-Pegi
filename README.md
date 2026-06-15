@@ -18,14 +18,8 @@ Branch yang digunakan:
 Lakukan sekali saja saat pertama kali mengambil project.
 
 ```bash
-<<<<<<< HEAD
-git clone [https://github.com/Harisnoresst/Project-Website-Pegi.git](https://github.com/Harisnoresst/Project-Website-Pegi.git)
+git clone https://github.com/Harisnoresst/Project-Website-Pegi.git
 cd Project-Website-Pegi
-
-=======
-git https://github.com/Harisnoresst/TravelGo.git
-cd TravelGo
->>>>>>> 946f5f36e22455d16bcdfd317d7a41c641cb73f5
 ```
 
 ---
