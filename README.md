@@ -1,7 +1,5 @@
 # Pegi - Team Workflow & Architecture Guide
 
-Selamat datang di repositori TravelGo Kelompok 1! Proyek ini menggunakan arsitektur **Monorepo**, di mana kode Frontend dan Backend disimpan dalam satu repositori yang sama tetapi dipisah ke dalam dua direktori utama: `/frontend` dan `/backend`.
-
 ## Struktur Folder Utama
 
 ```text
