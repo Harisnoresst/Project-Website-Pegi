@@ -286,10 +286,3 @@ MySQL Database
 ---
 
 Status: Development
-<<<<<<< HEAD
-
-```
-
-```
-=======
->>>>>>> 946f5f36e22455d16bcdfd317d7a41c641cb73f5
