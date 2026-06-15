@@ -1,283 +1,290 @@
-# Pegi - Team Workflow Guide
+# Pegi - Team Workflow & Architecture Guide
 
-## Repository Rules
+## Struktur Folder Utama
 
-Branch yang digunakan:
+```text
+Project-Website-Pegi/
+│
+├── frontend/                     <-- Folder kerja Tim Frontend (React, TypeScript)
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/               <-- File statis (Gambar, CSS global)
+│   │   ├── components/           <-- Komponen reusable (Navbar, Footer, Card)
+│   │   ├── context/              <-- State global (Data User Login, dll)
+│   │   ├── pages/                <-- Halaman UI utama
+│   │   ├── services/             <-- Konfigurasi Axios & Endpoint API
+│   │   ├── types/                <-- Definisi tipe data TypeScript (Interfaces)
+│   │   └── utils/                <-- Fungsi bantuan (Format Rupiah, Tanggal)
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── backend/                      <-- Folder kerja Tim Backend (Spring Boot, Java)
+│   ├── src/main/java/com/pegi/backend/
+│   │   ├── config/               <-- Pengaturan global (CORS, Security)
+│   │   ├── controller/           <-- Menerima request API dari Frontend
+│   │   ├── dto/                  <-- Format balasan API (ApiResponse, Request Body)
+│   │   ├── entity/               <-- Model tabel database
+│   │   │   └── enums/            <-- Kumpulan tipe data konstan (Status, Role)
+│   │   ├── repository/           <-- Query ke database MySQL
+│   │   └── service/              <-- Logika bisnis aplikasi
+│   ├── src/main/resources/
+│   │   └── application.properties<-- Tetapan database (pegi_db) & server
+│   └── pom.xml
+│
+└── README.md
 
-* `main` → Final / Production
-* `dev` → Development
-* `frontend-1` → Faishal (User Experience & Social Features)
-* `frontend-2` → Hamzah (Dashboard & Admin Monitoring)
-* `backend-1` → Haikal (Auth, User & Social Module)
-* `backend-2` → Haris (Booking, Transaction & Analytics Module)
+```
 
 ---
 
-# Clone Repository
+## Repository Branching Rules
 
-Lakukan sekali saja saat pertama kali mengambil project.
+Setiap anggota tim **wajib** bekerja di *branch* (jalur) masing-masing untuk mencegah bentrok kode saat mengedit proyek di dalam folder yang sama.
+
+* `main` → Final / Production (Hanya untuk rilis resmi)
+* `dev` → Development (Ruang tengah / Pusat integrasi kode Frontend & Backend)
+* `frontend-faishal` → Branch kerja Faishal
+* `frontend-hamzah` → Branch kerja Hamzah
+* `backend-haikal` → Branch kerja Haikal
+* `backend-haris` → Branch kerja Haris
+
+---
+
+## Setup Pertama Kali (Clone & Install)
+
+Jalankan deretan perintah ini **sekali saja** saat pertama kali mengunduh proyek ke laptop:
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/Harisnoresst/Project-Website-Pegi.git
 cd Project-Website-Pegi
 
+=======
+# 1. Clone repositori ke laptop
+git clone [https://github.com/Harisnoresst/Project-Website-Pegi.git](https://github.com/Harisnoresst/Project-Website-Pegi.git)
+cd Project-Website-Pegi
+
+# 2. Setup Frontend (Bagi Tim Frontend)
+cd frontend
+npm install    # Menginstal semua library (React, Bootstrap, Axios)
+cd ..
+
+# 3. Masuk ke branch utama dan tarik data terbaru
+git checkout dev
+git pull origin dev
+
+# 4. Buat dan pindah ke branch pribadi masing-masing (Contoh untuk Faishal)
+git checkout -b frontend-faishal
+
+>>>>>>> dev
 ```
+
+*(Catatan: Langkah ke-4 dilakukan agar kamu membawa "fotokopian" pondasi proyek dari `dev` ke kamar/branch pribadimu).*
 
 ---
 
-# Ambil Update Terbaru
+## Pembagian Tugas, Lokasi File, dan API (Kontrak Kerja)
 
-Sebelum mulai bekerja, selalu update branch `dev`.
+### TIM FRONTEND (Bekerja di dalam folder `/frontend`)
+
+**1. Faishal (User Experience & Social Features)**
+Fokus pada antarmuka pengguna umum dan interaksi sosial.
+
+* **Pages (`/frontend/src/pages/`):**
+* `HomePage.tsx`, `LoginPage.tsx`, `RegisterPage.tsx`
+* `HotelSearchPage.tsx`, `HotelDetailPage.tsx`
+* `DestinationSearchPage.tsx`, `DestinationDetailPage.tsx`
+* `TransportSearchPage.tsx` (Pencarian transportasi darat)
+* `TravelPartnerPage.tsx` (Matching User), `GroupListPage.tsx`, `GroupDetailPage.tsx`
+* `ChatPage.tsx`, `SplitBillPage.tsx`
+
+
+* **Services (`/frontend/src/services/`):**
+* `authService.ts`, `hotelService.ts`, `destinationService.ts`, `transportService.ts`
+* `matchingService.ts`, `groupService.ts`, `chatService.ts`, `splitBillService.ts`
+
+
+* **API yang Dikonsumsi:**
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+* `GET /api/hotels`, `GET /api/hotels/{id}`
+* `GET /api/destinations`, `GET /api/destinations/{id}` (Termasuk data Crowd Level)
+* `GET /api/transports`, `GET /api/transports/{id}`
+* `GET /api/matching/partners`
+* `POST /api/groups`, `GET /api/groups`
+* `POST /api/groups/{id}/invite`, `POST /api/groups/{id}/join`
+* `GET /api/groups/{id}/chats`, `POST /api/groups/{id}/chats`
+* `GET /api/groups/{id}/split-bill`, `POST /api/groups/{id}/split-bill`
+* `PUT /api/groups/{id}/split-bill/{billId}/pay`
+
+
+
+**2. Hamzah (Dashboard & Admin Monitoring)**
+Fokus pada halaman profil, riwayat, dan panel kontrol administrator.
+
+* **Pages (`/frontend/src/pages/`):**
+* `ProfilePage.tsx` (Termasuk tampilan Gamification/Badge)
+* `WishlistPage.tsx`, `BookingHistoryPage.tsx`
+* `AdminDashboard.tsx`, `AdminUserPage.tsx`, `AdminHotelPage.tsx`
+* `AdminDestinationPage.tsx`, `AdminPromoPage.tsx`
+* `AdminTransportPage.tsx` (CRUD data transportasi darat)
+* `AdminGroupPage.tsx` (Monitoring aktivitas grup)
+* `AdminMonitoringPage.tsx` (Statistik dan destinasi populer)
+
+
+* **Services (`/frontend/src/services/`):**
+* `userService.ts`, `wishlistService.ts`, `bookingService.ts`
+* `adminService.ts`, `promoService.ts`, `adminTransportService.ts`, `monitoringService.ts`
+
+
+* **API yang Dikonsumsi:**
+* `GET /api/profile`, `PUT /api/profile`
+* `GET /api/wishlist`, `POST /api/wishlist`, `DELETE /api/wishlist/{id}`
+* `GET /api/bookings`, `POST /api/bookings`
+* `GET /api/admin/dashboard`
+* `GET /api/admin/users`, `POST /api/admin/users`, `PUT /api/admin/users/{id}`, `DELETE /api/admin/users/{id}`
+* `GET /api/admin/hotels`, `POST /api/admin/hotels`, `PUT /api/admin/hotels/{id}`, `DELETE /api/admin/hotels/{id}`
+* `GET /api/admin/destinations`, `POST /api/admin/destinations`, `PUT /api/admin/destinations/{id}`, `DELETE /api/admin/destinations/{id}`
+* `GET /api/admin/promos`, `POST /api/admin/promos`, `PUT /api/admin/promos/{id}`, `DELETE /api/admin/promos/{id}`
+* `GET /api/admin/transports`, `POST /api/admin/transports`, `PUT /api/admin/transports/{id}`, `DELETE /api/admin/transports/{id}`
+* `GET /api/admin/groups`
+* `GET /api/admin/monitoring/stats`
+
+
+
+---
+
+### TIM BACKEND (Bekerja di dalam folder `/backend`)
+
+*(Path Base: `/backend/src/main/java/com/pegi/backend/`)*
+
+**3. Haikal (Auth, User & Social Module)**
+Fokus pada otentikasi, manajemen pengguna, dan fitur sosial.
+
+* **Controllers (`.../controller/`):** `AuthController.java`, `UserController.java`, `WishlistController.java`, `ReviewController.java`, `MatchingController.java`, `GroupController.java`, `ChatController.java`
+* **Services (`.../service/`):** `AuthService.java`, `UserService.java`, `WishlistService.java`, `ReviewService.java`, `MatchingService.java`, `GroupService.java`, `ChatService.java`, `BadgeService.java` (Logika gamifikasi otomatis)
+* **Repositories (`.../repository/`):** `UserRepository.java`, `RoleRepository.java`, `WishlistRepository.java`, `ReviewRepository.java`, `GroupRepository.java`, `ChatMessageRepository.java`
+* **Entities (`.../entity/`):** `User.java`, `Role.java`, `Wishlist.java`, `Review.java`, `Group.java`, `GroupMember.java`, `ChatMessage.java`, `Badge.java`
+* **Enums (`.../entity/enums/`):** `RoleType.java` (ADMIN, USER), `GroupType.java` (PRIVATE, PUBLIC)
+* **Penyedia API:**
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+* `POST /api/auth/logout`
+* `GET /api/profile` (Termasuk data Badge), `PUT /api/profile`
+* `GET /api/wishlist`, `POST /api/wishlist`, `DELETE /api/wishlist/{id}`
+* `POST /api/reviews`, `GET /api/reviews/{hotelId}`
+
+
+
+**4. Haris (Booking, Transaction & Analytics Module)**
+Fokus pada inventaris, transaksi pemesanan, dan sistem *split bill*.
+
+* **Controllers (`.../controller/`):** `HotelController.java`, `DestinationController.java`, `TransportController.java`, `BookingController.java`, `PaymentController.java`, `PromoController.java`, `InvoiceController.java`, `SplitBillController.java`
+* **Services (`.../service/`):** `HotelService.java`, `DestinationService.java`, `TransportService.java`, `BookingService.java`, `PaymentService.java`, `PromoService.java`, `InvoiceService.java`, `EmailService.java`, `QRCodeService.java`, `SplitBillService.java`, `CrowdCalculationService.java` (Otomatis menghitung keramaian), `MonitoringService.java`
+* **Repositories (`.../repository/`):** `HotelRepository.java`, `RoomRepository.java`, `DestinationRepository.java`, `TransportRepository.java`, `BookingRepository.java`, `PaymentRepository.java`, `PromoRepository.java`, `SplitBillRepository.java`
+* **Entities (`.../entity/`):** `Hotel.java`, `Room.java`, `Destination.java`, `Transport.java`, `Booking.java`, `Payment.java`, `Promo.java`, `Ticket.java`, `SplitBill.java`, `BillMember.java`
+* **Enums (`.../entity/enums/`):** `BookingStatus.java` (PENDING, CONFIRMED, CANCELLED), `PaymentStatus.java`, `CrowdLevel.java` (SEPI, SEDANG, RAMAI), `BillStatus.java` (BELUM_BAYAR, SUDAH_BAYAR)
+* **Penyedia API:**
+* `GET /api/hotels`
+* `GET /api/destinations`
+* `POST /api/bookings`
+* `GET /api/bookings`
+* `DELETE /api/bookings/{id}`
+* `POST /api/payments`
+* `GET /api/invoice/{bookingId}`
+* `POST /api/promos/validate`
+* `GET /api/qrcode/{bookingId}`
+* `POST /api/email/send`
+
+
+
+---
+
+## Workflow Harian GitHub (Wajib Diikuti)
+
+Ikuti 3 langkah utama ini setiap hari agar pekerjaanmu tetap terhubung dengan progres teman satu tim:
+
+### 1. SEBELUM NGODING: Tarik Update Terbaru dari Ruang Tengah (`dev`)
+
+Posisi kamu harus tetap di branch pribadi (contoh: `frontend-faishal`). Tarik kode terbaru yang sudah diselesaikan oleh temanmu dari `dev` agar kodemu tidak tertinggal.
 
 ```bash
-git checkout dev
 git pull origin dev
 
 ```
 
----
+### 2. SAAT NGODING: Jalankan Proyek
 
-# FRONTEND 1 (Faishal)
+* **Tim Frontend:** Masuk ke folder `frontend` lalu jalankan `npm run dev`.
+* **Tim Backend:** Buka folder `backend` di IDE (VS Code / IntelliJ) lalu jalankan aplikasi Spring Boot.
 
-Tugas:
+### 3. SELESAI NGODING: Simpan & Push ke Branch Pribadi
 
-* HomePage
-* LoginPage
-* RegisterPage
-* HotelSearchPage
-* HotelDetailPage
-* DestinationSearchPage
-* DestinationDetailPage
-* TransportSearchPage (Baru)
-* TravelPartnerPage (Baru)
-* GroupListPage (Baru)
-* GroupDetailPage (Baru)
-* ChatPage (Baru)
-* SplitBillPage (Baru)
-
-Masuk ke branch:
+Simpan pekerjaanmu dan unggah ke "kamarmu" sendiri di GitHub.
 
 ```bash
-git checkout frontend-1
-
-```
-
-Jika branch belum ada di lokal:
-
-```bash
-git checkout -b frontend-1 origin/frontend-1
-
-```
-
----
-
-# FRONTEND 2 (Hamzah)
-
-Tugas:
-
-* ProfilePage (Termasuk Gamification/Badge)
-* WishlistPage
-* BookingHistoryPage
-* AdminDashboard
-* AdminUserPage
-* AdminHotelPage
-* AdminDestinationPage
-* AdminPromoPage
-* AdminTransportPage (Baru)
-* AdminGroupPage (Baru)
-* AdminMonitoringPage (Baru)
-
-Masuk ke branch:
-
-```bash
-git checkout frontend-2
-
-```
-
-Jika branch belum ada di lokal:
-
-```bash
-git checkout -b frontend-2 origin/frontend-2
-
-```
-
----
-
-# BACKEND 1 (Haikal)
-
-Tugas (Controller & Service):
-
-* AuthController
-* UserController
-* WishlistController
-* ReviewController
-* MatchingController (Baru)
-* GroupController (Baru)
-* ChatController (Baru)
-* BadgeService (Baru - Gamification)
-
-Masuk ke branch:
-
-```bash
-git checkout backend-1
-
-```
-
-Jika branch belum ada di lokal:
-
-```bash
-git checkout -b backend-1 origin/backend-1
-
-```
-
----
-
-# BACKEND 2 (Haris)
-
-Tugas (Controller & Service):
-
-* HotelController
-* DestinationController
-* TransportController (Baru)
-* BookingController
-* PaymentController
-* PromoController
-* InvoiceController
-* SplitBillController (Baru)
-* CrowdCalculationService (Baru)
-* MonitoringService (Baru)
-
-Masuk ke branch:
-
-```bash
-git checkout backend-2
-
-```
-
-Jika branch belum ada di lokal:
-
-```bash
-git checkout -b backend-2 origin/backend-2
-
-```
-
----
-
-# Menyimpan Perubahan
-
-```bash
+# Pastikan kamu ada di root folder (Project-Website-Pegi)
 git add .
-git commit -m "feat: nama fitur"
+git commit -m "feat: tambah UI form login"
 git push origin <nama-branch-kamu>
 
 ```
 
-Contoh:
+---
 
-```bash
-git add .
-git commit -m "feat: add transport search page"
-git push origin frontend-1
+## Cara Pull Request (Setor Kode ke Dev)
 
-```
+Ketika fitur buatanmu sudah selesai dites dan siap digabungkan:
+
+1. Buka repositori di GitHub.
+2. Klik tombol **Pull Request**.
+3. Arahkan *branch* kamu untuk digabung ke `dev` (Contoh: `frontend-faishal` -> `dev`).
+4. Berikan judul yang jelas (Contoh: *Selesai Fitur Transport Frontend*).
+5. Minta rekan setim untuk melakukan *Code Review* dan klik **Merge**.
+*(Setelah di-Merge, kode kamu resmi masuk ke ruang tengah `dev` dan bisa di-pull oleh rekan tim lainnya).*
 
 ---
 
-# Workflow Harian
+## Penyelesaian Error GitHub
 
-1. Update branch dev
+Jika saat `git push` muncul pesan error seperti **`failed to push some refs`** atau **`fetch first`**:
+
+* **Arti:** Git menolak unggahanmu karena ada *update* dari teman di *branch* tersebut yang belum kamu ambil ke laptopmu.
+* **Solusi:** Tarik data tersebut untuk digabungkan secara otomatis oleh Git.
 
 ```bash
-git checkout dev
-git pull origin dev
+git pull origin <nama-branch-kamu>
 
 ```
 
-2. Masuk ke branch masing-masing
-
-```bash
-git checkout frontend-1
-
-```
-
-3. Kerjakan fitur
-4. Simpan perubahan
-
-```bash
-git add .
-git commit -m "feat: nama fitur"
-git push origin <nama-branch-kamu>
-
-```
-
-5. Buat Pull Request ke `dev`
+Setelah *pull* berhasil (dan tidak ada *Merge Conflict*), ulangi perintah `git push origin <nama-branch-kamu>`.
 
 ---
 
-# Pull Request
-
-Setelah selesai mengerjakan fitur:
-
-1. Push ke branch masing-masing
-2. Buka GitHub
-3. Klik **Pull Request**
-4. Pilih:
+## System Architecture Flow
 
 ```text
-frontend-1 -> dev
-frontend-2 -> dev
-backend-1 -> dev
-backend-2 -> dev
-
-```
-
-5. Setelah direview, merge ke `dev`
-
----
-
-# Rules
-
-* Jangan commit langsung ke `main`
-* Jangan commit langsung ke `dev`
-* Kerjakan hanya di branch masing-masing
-* Selalu lakukan `git pull origin dev` sebelum mulai bekerja
-* Gunakan commit message yang jelas
-
-Contoh:
-
-```bash
-feat: add login page
-fix: booking validation bug
-docs: update README
-
-```
-
----
-
-# System Architecture
-
-```text
-React Frontend
+React Frontend (Faishal & Hamzah)
       ↓
 Axios Service
       ↓
-Spring Boot API
+Spring Boot API (Haikal & Haris)
       ↓
 MySQL Database
 
 ```
 
----
-
-# Team
-
-| Nama | Divisi |
-| --- | --- |
-| Faishal | Frontend 1 |
-| Hamzah | Frontend 2 |
-| Haikal | Backend 1 |
-| Haris | Backend 2 |
+| Nama | Divisi | Branch Kerja |
+| --- | --- | --- |
+| Faishal | Frontend 1 | `frontend-faishal` |
+| Hamzah | Frontend 2 | `frontend-hamzah` |
+| Haikal | Backend 1 | `backend-haikal` |
+| Haris | Backend 2 | `backend-haris` |
 
 ---
 
-Status: Development
+**Status:** Development
+
+```
+
+```
