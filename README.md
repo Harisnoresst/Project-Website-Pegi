@@ -1,11 +1,4 @@
-Berikut adalah pembaruan file `README.md` yang sudah disesuaikan dengan arsitektur terbaru (penghapusan fitur *Flight*, penambahan fitur *Transport* darat, *Social/Group*, *Split Bill*, *Crowd Level*, dan *Gamification*), serta perbaikan pada error *merge conflict* di baris paling bawah dan perbaikan *typo* pada *command clone*.
-
-Kamu bisa langsung *copy-paste* teks di bawah ini ke dalam file `README.md` di repositori kalian:
-
----
-
-```markdown
-# TravelGo - Team Workflow Guide
+# Pegi - Team Workflow Guide
 
 ## Repository Rules
 
@@ -25,9 +18,14 @@ Branch yang digunakan:
 Lakukan sekali saja saat pertama kali mengambil project.
 
 ```bash
+<<<<<<< HEAD
 git clone [https://github.com/Harisnoresst/Project-Website-Pegi.git](https://github.com/Harisnoresst/Project-Website-Pegi.git)
 cd Project-Website-Pegi
 
+=======
+git https://github.com/Harisnoresst/TravelGo.git
+cd TravelGo
+>>>>>>> 946f5f36e22455d16bcdfd317d7a41c641cb73f5
 ```
 
 ---
@@ -288,7 +286,10 @@ MySQL Database
 ---
 
 Status: Development
+<<<<<<< HEAD
 
 ```
 
 ```
+=======
+>>>>>>> 946f5f36e22455d16bcdfd317d7a41c641cb73f5
