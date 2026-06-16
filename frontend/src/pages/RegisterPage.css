@@ -1,0 +1,431 @@
+/* src/pages/RegisterPage.css */
+
+.register-wrapper {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #ffffff;
+    color: #374151;
+    box-sizing: border-box;
+}
+
+.register-wrapper * {
+    box-sizing: inherit;
+}
+
+
+/* --- Left Panel (Hero Banner) --- */
+
+.register-left {
+    flex: 1;
+    background: url('../assets/hero-bg.png') center/cover no-repeat;
+    background-color: #4A23A4;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 48px;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    color: #ffffff;
+}
+
+.glass-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.glass-card p {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #E2D9F3;
+}
+
+.testimonial-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-group {
+    display: flex;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    margin-left: -12px;
+    background-color: #E5E7EB;
+}
+
+.avatar:first-child {
+    margin-left: 0;
+    background-color: #F3F4F6;
+}
+
+.avatar:nth-child(2) {
+    background-color: #D1D5DB;
+}
+
+.avatar:nth-child(3) {
+    background-color: #9CA3AF;
+}
+
+.testimonial-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+
+/* --- Right Panel (Form Area) --- */
+
+.register-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 48px;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 440px;
+}
+
+
+/* Header */
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.logo-text {
+    color: #4A23A4;
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.badge-bonus {
+    background-color: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FDE68A;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* Tabs */
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 32px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 0;
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #9CA3AF;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #4B5563;
+}
+
+.tab-btn.active {
+    color: #7B3FE4;
+    border-bottom-color: #7B3FE4;
+    font-weight: 600;
+}
+
+
+/* Form Elements */
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-label {
+    font-size: 14px;
+    color: #4B5563;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon-left {
+    position: absolute;
+    left: 14px;
+    color: #9CA3AF;
+    display: flex;
+}
+
+.input-icon-right {
+    position: absolute;
+    right: 14px;
+    color: #9CA3AF;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    padding: 0;
+}
+
+.input-icon-right:hover {
+    color: #6B7280;
+}
+
+.form-control {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px 0 42px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #1F2937;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #7B3FE4;
+    box-shadow: 0 0 0 3px rgba(123, 63, 228, 0.1);
+}
+
+.form-control::placeholder {
+    color: #D1D5DB;
+}
+
+
+/* Checkbox Terms & Conditions */
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #7B3FE4;
+    cursor: pointer;
+    margin-top: 2px;
+}
+
+.checkbox-label {
+    font-size: 13px;
+    color: #4B5563;
+    line-height: 1.5;
+}
+
+.text-purple {
+    color: #7B3FE4;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.text-purple:hover {
+    text-decoration: underline;
+}
+
+
+/* Submit Button */
+
+.btn-primary {
+    width: 100%;
+    height: 48px;
+    background-color: #7B3FE4;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.25);
+    margin-top: 8px;
+}
+
+.btn-primary:hover {
+    background-color: #6a32cc;
+    box-shadow: 0 6px 16px rgba(123, 63, 228, 0.35);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+
+/* Divider */
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 28px 0;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #E5E7EB;
+}
+
+.divider-text {
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    letter-spacing: 0.5px;
+}
+
+
+/* Social Login */
+
+.social-login-group {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.btn-social {
+    flex: 1;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #ffffff;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-social:hover {
+    background-color: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+.btn-social svg {
+    font-size: 20px;
+    /* Size konsisten untuk React Icons */
+}
+
+
+/* Bottom Text & Footer */
+
+.login-prompt {
+    text-align: center;
+    font-size: 14px;
+    color: #4B5563;
+    margin-bottom: 40px;
+}
+
+.login-prompt a {
+    color: #7B3FE4;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-prompt a:hover {
+    text-decoration: underline;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    border-top: 1px solid #F3F4F6;
+    padding-top: 24px;
+}
+
+.form-footer a {
+    color: #9CA3AF;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.form-footer a:hover {
+    color: #6B7280;
+}
+
+
+/* --- Responsive Media Queries --- */
+
+@media (max-width: 992px) {
+    .register-left {
+        padding: 32px;
+    }
+    .register-right {
+        padding: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .register-wrapper {
+        flex-direction: column;
+    }
+    .register-left {
+        display: none;
+    }
+    .register-right {
+        padding: 24px;
+        justify-content: flex-start;
+        margin-top: 24px;
+    }
+    .social-login-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
