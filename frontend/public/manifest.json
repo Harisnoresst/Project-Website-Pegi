@@ -2,36 +2,36 @@
   "name": "Pegi",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "",
-  "theme_color": "",
+  "background_color": "#7C3AED",
+  "theme_color": "#7C3AED",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/pegi-72x72.svg",
+      "src": "/Pegi-72x72.svg",
       "type": "image/svg+xml",
       "sizes": "72x72"
     },
     {
-      "src": "/pegi-192x192.svg",
+      "src": "/Pegi-192x192.svg",
       "type": "image/svg+xml",
       "sizes": "192x192"
     },
     {
-      "src": "/pegi-512x512.svg",
+      "src": "/Pegi-512x512.svg",
       "type": "image/svg+xml",
       "sizes": "512x512"
     }
   ],
   "screenshots": [
     {
-      "src": "",
-      "sizes": "2527x1285",
+      "src": "/Pegi-Screenshot-pc.png",
+      "sizes": "1167x772",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "",
-      "sizes": "459x1024",
+      "src": "/Pegi-Screenshot-mobile.png",
+      "sizes": "459x769",
       "type": "image/png"
     }
   ]
