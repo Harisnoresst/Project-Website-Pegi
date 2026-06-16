@@ -7,18 +7,18 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "",
-      "type": "image/png",
+      "src": "/pegi-72x72.svg",
+      "type": "image/svg+xml",
       "sizes": "72x72"
     },
     {
-      "src": "",
-      "type": "image/png",
+      "src": "/pegi-192x192.svg",
+      "type": "image/svg+xml",
       "sizes": "192x192"
     },
     {
-      "src": "",
-      "type": "image/png",
+      "src": "/pegi-512x512.svg",
+      "type": "image/svg+xml",
       "sizes": "512x512"
     }
   ],
