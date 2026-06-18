@@ -236,7 +236,7 @@
 
 @media (max-width: 1024px) {
   .wishlist-grid {
-    grid-template-columns: 1fr 1fr; /* 2 Kolom di Tablet */
+    grid-template-columns: 1fr 1fr; 
   }
 }
 

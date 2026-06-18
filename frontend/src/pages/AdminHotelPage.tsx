@@ -201,7 +201,6 @@ const AdminHotelPage: React.FC = () => {
           <div className="hotel-preview-section">
             <div className="preview-header">
               <h3>Pratinjau Hotel</h3>
-              <span className="live-badge">LIVE PREVIEW</span>
             </div>
 
             <div className="preview-card">

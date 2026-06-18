@@ -6,7 +6,6 @@ import {
 import './WishlistPage.css';
 import { getWishlist, removeFromWishlist } from '../services/wishlistService';
 
-// Definisi Tipe Data Wishlist
 interface WishlistItem {
   id: string;
   category: string;
@@ -17,7 +16,6 @@ interface WishlistItem {
 }
 
 const WishlistPage: React.FC = () => {
-  // Data sesuai Figma
   const wishlistItems: WishlistItem[] = [
     {
       id: '1',
@@ -25,7 +23,7 @@ const WishlistPage: React.FC = () => {
       title: 'Plataran Heritage Borobudur',
       location: 'Magelang, Jawa Tengah',
       imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#8b5cf6' // Purple
+      badgeColor: '#8b5cf6' 
     },
     {
       id: '2',
@@ -33,7 +31,7 @@ const WishlistPage: React.FC = () => {
       title: 'KAI Taksaka Luxury Train',
       location: 'Jakarta - Yogyakarta',
       imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#3b82f6' // Blue
+      badgeColor: '#3b82f6' 
     },
     {
       id: '3',
@@ -41,13 +39,12 @@ const WishlistPage: React.FC = () => {
       title: 'Taman Sari Water Castle',
       location: 'Yogyakarta, D.I.Y',
       imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#f59e0b' // Orange
+      badgeColor: '#f59e0b' 
     }
   ];
 
   return (
     <div className="profile-layout">
-      {/* SIDEBAR KIRI */}
       <aside className="profile-sidebar">
         <div className="sidebar-header">
           <span className="sidebar-subtitle">WORKSPACE</span>
@@ -74,7 +71,6 @@ const WishlistPage: React.FC = () => {
         </button>
       </aside>
 
-      {/* KONTEN UTAMA */}
       <main className="profile-main">
         <div className="main-container">
           
@@ -83,17 +79,14 @@ const WishlistPage: React.FC = () => {
             <p>Temukan kembali tempat dan transportasi impian Anda.</p>
           </header>
 
-          {/* Grid Wishlist */}
           <div className="wishlist-grid">
             {wishlistItems.map((item) => (
               <div key={item.id} className="wishlist-card">
                 <div className="wishlist-image-wrapper">
                   <img src={item.imageUrl} alt={item.title} />
-                  {/* Icon Heart Floating */}
                   <div className="heart-icon-badge">
                     <FaHeart />
                   </div>
-                  {/* Category Badge Floating */}
                   <span className="category-tag" style={{ backgroundColor: item.badgeColor }}>
                     {item.category}
                   </span>
@@ -109,7 +102,6 @@ const WishlistPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Empty/Explore Prompt Section */}
           <div className="explore-prompt">
             <div className="prompt-icon">
               <FaCompass />

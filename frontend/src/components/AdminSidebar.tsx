@@ -20,10 +20,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeMenu }) => {
         <a href="/admin/users" className={`admin-nav-item ${activeMenu === 'pengguna' ? 'active' : ''}`}><FaUsers /> Pengguna</a>
         <a href="/admin/hotels" className={`admin-nav-item ${activeMenu === 'hotel' ? 'active' : ''}`}><FaHotel /> Hotel</a>
         <a href="/admin/destinations" className={`admin-nav-item ${activeMenu === 'destinasi' ? 'active' : ''}`}><FaMapMarkerAlt /> Destinasi</a>
-        <a href="#promo" className={`admin-nav-item ${activeMenu === 'promo' ? 'active' : ''}`}><FaTag /> Promo</a>
-        <a href="#trans" className={`admin-nav-item ${activeMenu === 'transportasi' ? 'active' : ''}`}><FaBus /> Transportasi</a>
-        <a href="#grup" className={`admin-nav-item ${activeMenu === 'grup' ? 'active' : ''}`}><FaGlobe /> Grup Wisata</a>
-        <a href="#monitor" className={`admin-nav-item ${activeMenu === 'monitoring' ? 'active' : ''}`}><FaChartLine /> Monitoring</a>
+        <a href="/admin/promos" className={`admin-nav-item ${activeMenu === 'promo' ? 'active' : ''}`}><FaTag /> Promo</a>
+        <a href="/admin/transport" className={`admin-nav-item ${activeMenu === 'transportasi' ? 'active' : ''}`}><FaBus /> Transportasi</a>
+        <a href="/admin/groups" className={`admin-nav-item ${activeMenu === 'grup' ? 'active' : ''}`}><FaGlobe /> Grup Wisata</a>
+        <a href="/admin/monitoring" className={`admin-nav-item ${activeMenu === 'monitoring' ? 'active' : ''}`}><FaChartLine /> Monitoring</a>
       </nav>
       <div className="sidebar-bottom">
         <a href="#settings" className="admin-nav-item"><FaCog /> Pengaturan</a>

@@ -4,10 +4,10 @@ import './AdminTopbar.css';
 
 // Definisi Jenis Props agar komponen bisa menerima data luar
 interface AdminTopbarProps {
-  showSearch?: boolean; // Mengatur apakah search bar mau dimunculkan atau tidak
-  searchQuery?: string; // Nilai ketikan pencarian
-  setSearchQuery?: (value: string) => void; // Fungsi untuk mengubah nilai ketikan
-  placeholder?: string; // Teks penanda di dalam kotak input
+  showSearch?: boolean; 
+  searchQuery?: string; 
+  setSearchQuery?: (value: string) => void; 
+  placeholder?: string; 
 }
 
 const AdminTopbar: React.FC<AdminTopbarProps> = ({
@@ -19,7 +19,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({
   return (
     <header className="admin-topbar">
       
-      {/* Kondisi: Jika showSearch bernilai true, kotak pencarian akan muncul */}
+     
       {showSearch ? (
         <div className="search-bar">
           <FaSearch className="search-icon" />
@@ -31,11 +31,10 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({
           />
         </div>
       ) : (
-        /* Jika showSearch false, div kosong ini akan mendorong ikon ke kanan */
+       
         <div className="topbar-left-spacer"></div>
       )}
 
-      {/* Bagian Kanan: Notifikasi & Profil */}
       <div className="topbar-actions">
         <div className="topbar-icons">
           <button className="icon-btn"><FaBell /></button>
