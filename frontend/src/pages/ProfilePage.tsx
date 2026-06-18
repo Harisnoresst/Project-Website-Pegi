@@ -1,21 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getProfile } from "../services/profileService";
 import { FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft, FaBus, FaStar, FaWalking, FaTrain, FaMapMarkedAlt, FaPen } from "react-icons/fa";
 import BadgeItem from "../components/BadgeItem";
 import "./ProfilePage.css";
 
 const ProfilePage: React.FC = () => {
-  // State untuk form profil
   const [formData, setFormData] = useState({
-    nama: "Asa Mitaka",
-    email: "asa.mitaka@email.com",
-    telepon: "+62 812 3456 7890",
-    kota: "Jakarta Selatan",
-    alamat: "Jl. Kemang Raya No. 10, Mampang Prapatan, Jakarta Selatan, 12730",
+    nama: "",
+    email: "",
+    telepon: "",
+    kota: "",
+    alamat: "",
   });
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    getProfile()
+      .then((data) => {
+        setFormData(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Gagal mengambil data profil:", error);
+        setLoading(false);
+      });
+  }, []);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      alert("Profil berhasil diperbarui!");
+    } catch (error) {
+      alert("Gagal memperbarui profil.");
+    }
+  };
+
+  if (loading) {
+    return <div style={{ padding: "40px", textAlign: "center" }}>Memuat data profil...</div>;
+  }
 
   return (
     <div className="profile-layout">
@@ -91,7 +116,7 @@ const ProfilePage: React.FC = () => {
                   <textarea name="alamat" value={formData.alamat} onChange={handleChange} rows={3}></textarea>
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="btn-save">
+                  <button className="btn-save" onClick={handleSave}>
                     Simpan Perubahan
                   </button>
                 </div>

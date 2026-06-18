@@ -1,0 +1,36 @@
+import React from 'react';
+import { 
+  FaHome, FaUsers, FaHotel, FaMapMarkerAlt, FaTag, FaBus, 
+  FaGlobe, FaChartLine, FaCog, FaSignOutAlt 
+} from 'react-icons/fa';
+
+interface AdminSidebarProps {
+  activeMenu: string;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeMenu }) => {
+  return (
+    <aside className="admin-sidebar">
+      <div className="sidebar-brand">
+        <h2>Pegi</h2>
+        <p>Enterprise Admin</p>
+      </div>
+      <nav className="admin-nav">
+        <a href="/admin" className={`admin-nav-item ${activeMenu === 'dashboard' ? 'active' : ''}`}><FaHome /> Dashboard</a>
+        <a href="/admin/users" className={`admin-nav-item ${activeMenu === 'pengguna' ? 'active' : ''}`}><FaUsers /> Pengguna</a>
+        <a href="/admin/hotels" className={`admin-nav-item ${activeMenu === 'hotel' ? 'active' : ''}`}><FaHotel /> Hotel</a>
+        <a href="/admin/destinations" className={`admin-nav-item ${activeMenu === 'destinasi' ? 'active' : ''}`}><FaMapMarkerAlt /> Destinasi</a>
+        <a href="#promo" className={`admin-nav-item ${activeMenu === 'promo' ? 'active' : ''}`}><FaTag /> Promo</a>
+        <a href="#trans" className={`admin-nav-item ${activeMenu === 'transportasi' ? 'active' : ''}`}><FaBus /> Transportasi</a>
+        <a href="#grup" className={`admin-nav-item ${activeMenu === 'grup' ? 'active' : ''}`}><FaGlobe /> Grup Wisata</a>
+        <a href="#monitor" className={`admin-nav-item ${activeMenu === 'monitoring' ? 'active' : ''}`}><FaChartLine /> Monitoring</a>
+      </nav>
+      <div className="sidebar-bottom">
+        <a href="#settings" className="admin-nav-item"><FaCog /> Pengaturan</a>
+        <a href="#logout" className="admin-nav-item text-red"><FaSignOutAlt /> Keluar</a>
+      </div>
+    </aside>
+  );
+};
+
+export default AdminSidebar;

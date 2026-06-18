@@ -4,6 +4,7 @@ import {
   FaMapMarkerAlt, FaCompass 
 } from 'react-icons/fa';
 import './WishlistPage.css';
+import { getWishlist, removeFromWishlist } from '../services/wishlistService';
 
 // Definisi Tipe Data Wishlist
 interface WishlistItem {
