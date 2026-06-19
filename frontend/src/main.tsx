@@ -9,14 +9,14 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('ServiceWorker berhasil didaftarkan dengan scope:', registration.scope);
-      })
-      .catch((error) => {
-        console.error('ServiceWorker gagal didaftarkan:', error);
-      });
-  });
-}
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js')
+//       .then((registration) => {
+//         console.log('ServiceWorker berhasil didaftarkan dengan scope:', registration.scope);
+//       })
+//       .catch((error) => {
+//         console.error('ServiceWorker gagal didaftarkan:', error);
+//       });
+//   });
+// }
