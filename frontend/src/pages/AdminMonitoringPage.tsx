@@ -5,10 +5,6 @@ import AdminTopbar from "../components/AdminTopbar";
 import StatistikChart from "../components/StatistikChart";
 import "./AdminMonitoringPage.css";
 
-// 1. IMPORT JSPDF & AUTOTABLE
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
 const AdminMonitoringPage: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [startDate, setStartDate] = useState("2023-10-01");
@@ -21,68 +17,17 @@ const AdminMonitoringPage: React.FC = () => {
     return `${d.getDate().toString().padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
   };
 
-  // 2. FUNGSI EXPORT PDF TERBARU (Format Tabel Teks)
   const handleExportPDF = () => {
-    // Inisialisasi dokumen ukuran A4 Portrait
-    const doc = new jsPDF("p", "mm", "a4");
-
-    // --- HEADER LAPORAN ---
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("PEGI TRAVEL - Laporan Performa Sistem", 14, 20);
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Periode: ${formatDate(startDate)} - ${formatDate(endDate)}`, 14, 28);
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("TOTAL PENDAPATAN", 14, 40);
-    doc.text("TOTAL BOOKING", 70, 40);
-    doc.text("PENGGUNA AKTIF", 125, 40);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("Rp 4.200.000.000", 14, 46);
-    doc.text("12.450", 70, 46);
-    doc.text("85.200", 125, 46);
-
-    const tableColumn = ["TANGGAL", "PENGGUNA BARU", "JML TRANSAKSI", "PENDAPATAN HARIAN"];
-   
-    const tableRows = [
-      ["01/10/2023", "120 Orang", "45", "Rp 15.000.000"],
-      ["02/10/2023", "85 Orang", "60", "Rp 21.000.000"],
-      ["03/10/2023", "140 Orang", "80", "Rp 32.500.000"],
-      ["04/10/2023", "90 Orang", "55", "Rp 18.000.000"],
-      ["05/10/2023", "210 Orang", "110", "Rp 45.000.000"],
-      ["06/10/2023", "165 Orang", "95", "Rp 38.000.000"],
-    ];
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 55, 
-      theme: "striped", 
-      styles: { 
-        font: "helvetica", 
-        fontSize: 9,
-        cellPadding: 4
-      },
-      headStyles: { 
-        fillColor: [67, 24, 255], 
-        textColor: [255, 255, 255],
-        fontStyle: "bold"
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252] 
-      }
-    });
-
     const d = new Date(startDate);
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
     const monthName = `${months[d.getMonth()]}_${d.getFullYear()}`;
-
-    doc.save(`Laporan_Performa_Pegi_${monthName}.pdf`);
+    
+    const originalTitle = document.title;
+    document.title = `Laporan_Performa_Pegi_${monthName}`;
+    
+    window.print();
+    
+    document.title = originalTitle;
   };
 
   return (
