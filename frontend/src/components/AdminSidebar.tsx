@@ -46,7 +46,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeMenu }) => {
         </a>
       </nav>
       <div className="sidebar-bottom">
-        <a href="#settings" className="admin-nav-item"><FaCog /> Pengaturan</a>
         <a href="/" className="admin-nav-item text-red"><FaSignOutAlt /> Keluar</a>
       </div>
     </aside>

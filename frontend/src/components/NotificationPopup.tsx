@@ -1,16 +1,21 @@
 import React from 'react';
-import { FaTimes, FaCheckCircle, FaMoneyBillWave } from 'react-icons/fa';
-import './NotificationPopup.css'; // Jangan lupa buat file CSS-nya
+import { FaTimes, FaMoneyBillWave, FaChevronRight } from 'react-icons/fa';
+import './NotificationPopup.css'; 
 
 interface NotificationPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  notifications: any[]; // Data transaksi status "Menunggu"
-  onApprove: (id: string) => void;
+  notifications: any[];
 }
 
-const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, onClose, notifications, onApprove }) => {
+const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, onClose, notifications }) => {
   if (!isOpen) return null;
+
+  // Fungsi untuk menutup popup lalu pindah ke halaman pembayaran
+  const handleNavigateToPayment = () => {
+    onClose();
+    window.location.href = '/admin/payments';
+  };
 
   return (
     <div className="modal-overlay">
@@ -33,12 +38,15 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, onClose, 
                     <p>{tx.serviceName} - <span className="text-bold">{tx.amount}</span></p>
                   </div>
                 </div>
+                
+                {/* Tombol diubah menjadi navigasi */}
                 <button 
-                  className="btn-approve" 
-                  onClick={() => { onApprove(tx.id); onClose(); }}
+                  className="btn-cek-detail" 
+                  onClick={handleNavigateToPayment}
                 >
-                  <FaCheckCircle /> Terima
+                  Cek Detail <FaChevronRight />
                 </button>
+                
               </div>
             ))
           )}

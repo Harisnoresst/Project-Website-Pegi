@@ -3,6 +3,7 @@ import { FaCheck, FaTimes, FaEye, FaClock, FaCheckCircle, FaTimesCircle } from "
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import "./AdminPaymentPage.css";
+import {useTransaction } from "../context/TransactionContext";
 
 interface Transaction {
   id: string;
@@ -23,72 +24,7 @@ const AdminPaymentPage: React.FC = () => {
   const [globalSearch, setGlobalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
   const [typeFilter, setTypeFilter] = useState("Semua Layanan");
-
-  // --- DUMMY DATA TRANSAKSI ---
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      txId: "INV-2405-001",
-      customerName: "Andi Prasetya",
-      serviceType: "Hotel",
-      serviceName: "Luxury Resort Bali (2 Malam)",
-      amount: "Rp 3.500.000",
-      date: "20 Mei 2024, 14:30",
-      status: "Menunggu",
-      proofImg: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: "2",
-      txId: "INV-2405-002",
-      customerName: "Santi Wijaya",
-      serviceType: "Transportasi",
-      serviceName: "Argo Bromo Anggrek (JKT-SBY)",
-      amount: "Rp 1.200.000",
-      date: "20 Mei 2024, 10:15",
-      status: "Menunggu",
-      proofImg: "https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: "3",
-      txId: "INV-2405-003",
-      customerName: "Budi Kusuma",
-      serviceType: "Destinasi",
-      serviceName: "Tiket Candi Borobudur (4 Orang)",
-      amount: "Rp 200.000",
-      date: "19 Mei 2024, 08:00",
-      status: "Berhasil",
-      proofImg: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80",
-    },
-   { 
-    id: '4',
-    txId: 'INV-2405-004', 
-    customerName: 'Asa Mitaka', 
-    serviceType: 'Grup Wisata', 
-    serviceName: 'Explorers Bali 2024', 
-    amount: 'Rp 1.500.000', 
-    date: '18 Mei 2024, 16:45', 
-    status: 'Ditolak', 
-    proofImg: 'https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?auto=format&fit=crop&w=400&q=80',
-    isSplitBill: true, 
-    totalGroupBill: 'Rp 6.000.000', splitCount: 4 
-    },
-    { 
-    id: '5', 
-    txId: 'INV-2406-999', 
-    customerName: 'Asa Mitaka', 
-    serviceType: 'Grup Wisata', 
-    serviceName: 'Bromo Midnight Trip', 
-    amount: 'Rp 300.000', 
-    date: '20 Jun 2026, 09:15', 
-    status: 'Menunggu', 
-    proofImg: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
-    isSplitBill: true, 
-    totalGroupBill: 'Rp 1.500.000', 
-    splitCount: 5 
-    },
-  ]);
-
-  // State Modal Bukti
+  const { transactions, setTransactions } = useTransaction();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
@@ -121,7 +57,7 @@ const AdminPaymentPage: React.FC = () => {
 
   return (
     <div className="admin-layout">
-      <AdminSidebar activeMenu="pembayaran" /> {/* Sesuaikan nama activeMenu jika perlu */}
+      <AdminSidebar activeMenu="pembayaran" /> 
       <main className="admin-main">
         <AdminTopbar showSearch={true} searchQuery={globalSearch} setSearchQuery={setGlobalSearch} placeholder="Cari ID Transaksi atau Nama..." />
 

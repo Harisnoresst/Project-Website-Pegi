@@ -1,12 +1,15 @@
-import { StrictMode } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { TransactionProvider } from './context/TransactionContext'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <React.StrictMode>
+    <TransactionProvider>
+      <App />
+    </TransactionProvider>
+  </React.StrictMode>,
 )
 
 // if ('serviceWorker' in navigator) {

@@ -40,14 +40,22 @@
 
 .icon-money { color: #6366f1; }
 
-.btn-approve {
-  background: #05cd99;
-  color: white;
+.btn-cek-detail {
+  background: #eef2ff;
+  color: #4318ff;
   border: none;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: 0.2s;
+}
+
+.btn-cek-detail:hover {
+  background: #4318ff;
+  color: white;
 }

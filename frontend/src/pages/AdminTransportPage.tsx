@@ -35,7 +35,6 @@ const AdminTransportPage: React.FC = () => {
     { id: '4', name: 'Pegi Shuttle Airport', detail: 'SH-009 Premium', type: 'SHUTTLE', route: 'Bandara Soetta - BSD', price: 'Rp 80.000', capacity: '14 Kursi', status: 'Nonaktif', img: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=150&q=80' }
   ]);
 
-  // --- STATE MODAL CRUD ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [formData, setFormData] = useState<Partial<Transport>>({});
@@ -153,9 +152,6 @@ const AdminTransportPage: React.FC = () => {
                 <option value="Maintenance">Maintenance</option>
                 <option value="Nonaktif">Nonaktif</option>
               </select>
-            </div>
-            <div className="filter-right">
-              <span className="text-gray sm-text">Urutkan: <strong className="text-purple">Terbaru ↓</strong></span>
             </div>
           </div>
 

@@ -1,20 +1,18 @@
-import React, { useState } from "react";
-import { FaSearch, FaBell, FaCog } from "react-icons/fa";
+import React from "react";
+import { FaSearch, FaBell } from "react-icons/fa";
+import { useTransaction } from "../context/TransactionContext"; // <-- Import Context
 import "./AdminTopbar.css";
 
-// 1. Tambahkan interface untuk menerima data transaksi
 interface AdminTopbarProps {
   showSearch?: boolean;
   searchQuery?: string;
   setSearchQuery?: (value: string) => void;
   placeholder?: string;
-  transactions?: any[]; // Data transaksi untuk menghitung notifikasi
-  onOpenNotif?: () => void; // Fungsi untuk membuka modal popup
 }
 
-const AdminTopbar: React.FC<AdminTopbarProps> = ({ showSearch = false, searchQuery = "", setSearchQuery, placeholder = "Cari...", transactions = [], onOpenNotif }) => {
-  // 2. Hitung jumlah transaksi dengan status "Menunggu"
-  const pendingCount = transactions.filter((t) => t.status === "Menunggu").length;
+const AdminTopbar: React.FC<AdminTopbarProps> = ({ showSearch = false, searchQuery = "", setSearchQuery, placeholder = "Cari..." }) => {
+  const { transactions, setIsNotifOpen } = useTransaction();
+  const pendingCount = transactions.filter((t: any) => t.status === "Menunggu").length;
 
   return (
     <header className="admin-topbar">
@@ -29,13 +27,9 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ showSearch = false, searchQue
 
       <div className="topbar-actions">
         <div className="topbar-icons">
-          {/* 3. Tambahkan badge jika ada notifikasi dan event klik */}
-          <button className="icon-btn" onClick={onOpenNotif}>
+          <button className="icon-btn" onClick={() => setIsNotifOpen(true)} style={{ position: 'relative' }}>
             <FaBell />
             {pendingCount > 0 && <span className="notification-badge">{pendingCount}</span>}
-          </button>
-          <button className="icon-btn">
-            <FaCog />
           </button>
         </div>
 

@@ -21,7 +21,6 @@ interface TourGroup {
 }
 
 const AdminGroupPage: React.FC = () => {
-  // Pencarian diletakkan di Topbar sesuai permintaan
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
 
