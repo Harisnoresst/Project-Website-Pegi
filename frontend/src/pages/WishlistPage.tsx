@@ -1,47 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import { 
   FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft, 
-  FaMapMarkerAlt, FaCompass 
-} from 'react-icons/fa';
-import './WishlistPage.css';
-import { getWishlist, removeFromWishlist } from '../services/wishlistService';
-
-interface WishlistItem {
-  id: string;
-  category: string;
-  title: string;
-  location: string;
-  imageUrl: string;
-  badgeColor: string;
-}
+  FaCompass, FaMapMarkerAlt 
+} from "react-icons/fa";
+import type { WishlistType } from "../types/WishlistType";
+import { getWishlist, removeWishlist } from "../services/wishlistService";
+import "./WishlistPage.css"; 
 
 const WishlistPage: React.FC = () => {
-  const wishlistItems: WishlistItem[] = [
-    {
-      id: '1',
-      category: 'Hotel Mewah',
-      title: 'Plataran Heritage Borobudur',
-      location: 'Magelang, Jawa Tengah',
-      imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#8b5cf6' 
-    },
-    {
-      id: '2',
-      category: 'Luxury Train',
-      title: 'KAI Taksaka Luxury Train',
-      location: 'Jakarta - Yogyakarta',
-      imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#3b82f6' 
-    },
-    {
-      id: '3',
-      category: 'Wisata Budaya',
-      title: 'Taman Sari Water Castle',
-      location: 'Yogyakarta, D.I.Y',
-      imageUrl: 'https://animehunch.com/wp-content/uploads/2023/01/Asa-Mitaka.jpg',
-      badgeColor: '#f59e0b' 
+  const [wishlist, setWishlist] = useState<WishlistType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchWishlist = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getWishlist();
+      setWishlist(response.data);
+    } catch (error) {
+      console.error("Gagal menarik data wishlist:", error);
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchWishlist();
+  }, []);
+
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await removeWishlist(id);
+      fetchWishlist(); 
+    } catch (error) {
+      alert("Gagal menghapus item dari wishlist.");
+    }
+  };
 
   return (
     <div className="profile-layout">
@@ -61,7 +54,7 @@ const WishlistPage: React.FC = () => {
           <a href="/wishlist" className="nav-item active">
             <FaHeart className="nav-icon" /> Wishlist Saya
           </a>
-          <a href="grup" className="nav-item">
+          <a href="/grup" className="nav-item">
             <FaUsers className="nav-icon" /> Grup Perjalanan Saya
           </a>
         </nav>
@@ -71,6 +64,7 @@ const WishlistPage: React.FC = () => {
         </button>
       </aside>
 
+      {/* --- KONTEN UTAMA --- */}
       <main className="profile-main">
         <div className="main-container">
           
@@ -79,39 +73,37 @@ const WishlistPage: React.FC = () => {
             <p>Temukan kembali tempat dan transportasi impian Anda.</p>
           </header>
 
-          <div className="wishlist-grid">
-            {wishlistItems.map((item) => (
-              <div key={item.id} className="wishlist-card">
-                <div className="wishlist-image-wrapper">
-                  <img src={item.imageUrl} alt={item.title} />
-                  <div className="heart-icon-badge">
-                    <FaHeart />
-                  </div>
-                  <span className="category-tag" style={{ backgroundColor: item.badgeColor }}>
-                    {item.category}
-                  </span>
-                </div>
-                
-                <div className="wishlist-content">
-                  <h3 className="wishlist-title">{item.title}</h3>
-                  <p className="wishlist-location">
-                    <FaMapMarkerAlt className="icon-marker" /> {item.location}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          {isLoading && <p className="loading-text">Memuat Wishlist...</p>}
 
-          <div className="explore-prompt">
-            <div className="prompt-icon">
+          {!isLoading && wishlist.length > 0 && (
+            <div className="wishlist-grid">
+              {wishlist.map((item) => (
+                <div key={item.id} className="wishlist-card">
+                  <div className="wishlist-img-container">
+                    <img src={item.imageUrl} alt={item.title} />
+                    <span className="wishlist-badge">{item.category}</span>
+                    {/* Tombol Heart (Klik untuk menghapus) */}
+                    <button className="btn-heart" onClick={() => handleDeleteItem(item.id)} title="Hapus dari Wishlist">
+                      <FaHeart />
+                    </button>
+                  </div>
+                  <div className="wishlist-info">
+                    <h4>{item.title}</h4>
+                    <p><FaMapMarkerAlt className="icon-grey"/> {item.location}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="explore-more-box">
+            <div className="explore-icon-wrapper">
               <FaCompass />
             </div>
             <h3>Ingin menambah destinasi lain?</h3>
-            <p>
-              Jelajahi ribuan pilihan hotel, transportasi darat, dan tempat 
-              wisata menarik lainnya di seluruh Indonesia.
-            </p>
-            <button className="btn-explore">Eksplor Sekarang</button>
+            <p>Jelajahi ribuan pilihan hotel, transportasi darat, dan tempat wisata<br/>menarik lainnya di seluruh Indonesia.</p>
+            <a href = "/"><button className="btn-explore">Eksplor Sekarang</button>
+            </a>
           </div>
 
         </div>

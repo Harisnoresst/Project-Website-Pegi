@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { getProfile } from "../services/profileService";
-import { FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft, FaBus, FaStar, FaWalking, FaTrain, FaMapMarkedAlt, FaPen } from "react-icons/fa";
+import { 
+  FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft, 
+  FaBus, FaStar, FaWalking, FaTrain, FaMapMarkedAlt, FaPen, FaLock 
+} from "react-icons/fa";
 import BadgeItem from "../components/BadgeItem";
 import "./ProfilePage.css";
 
@@ -11,13 +14,15 @@ const ProfilePage: React.FC = () => {
     telepon: "",
     kota: "",
     alamat: "",
+    totalDistance: 0, // <-- Tambahkan state jarak tempuh dari database
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getProfile()
       .then((data) => {
-        setFormData(data);
+        // Asumsi backend mengembalikan totalDistance. Jika belum ada, kita beri default 0.
+        setFormData({ ...data, totalDistance: data.totalDistance || 0 });
         setLoading(false);
       })
       .catch((error) => {
@@ -39,16 +44,53 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // --- LOGIKA GAMIFIKASI: TIER MEMBERSHIP ---
+  const getTierInfo = (distance: number) => {
+    if (distance >= 3000) {
+      return { 
+        name: "GOLD MEMBER", 
+        nextTier: "MAX", 
+        progress: 100, 
+        remaining: 0,
+        color: "#fbbf24" // Kuning Emas
+      };
+    } else if (distance >= 1000) {
+      return { 
+        name: "SILVER MEMBER", 
+        nextTier: "Gold Member", 
+        progress: (distance / 3000) * 100, 
+        remaining: 3000 - distance,
+        color: "#9ca3af" // Abu-abu Perak
+      };
+    } else {
+      return { 
+        name: "BRONZE MEMBER", 
+        nextTier: "Silver Member", 
+        progress: (distance / 1000) * 100, 
+        remaining: 1000 - distance,
+        color: "#b45309" // Coklat Perunggu
+      };
+    }
+  };
+
+  const tierInfo = getTierInfo(formData.totalDistance);
+
+  // --- LOGIKA GAMIFIKASI: BADGE SYSTEM ---
+  const allBadges = [
+    { id: 1, icon: <FaBus />, title: "First Trip", desc: "Perjalanan pertama Anda", reqDistance: 1 },
+    { id: 2, icon: <FaStar />, title: "Explorer", desc: "Menempuh 500+ km", reqDistance: 500 },
+    { id: 3, icon: <FaWalking />, title: "Adventurer", desc: "Menempuh 1.500+ km", reqDistance: 1500 },
+    { id: 4, icon: <FaTrain />, title: "Globetrotter", desc: "Menempuh 5.000+ km", reqDistance: 5000 },
+  ];
+
   if (loading) {
-    return <div style={{ padding: "40px", textAlign: "center" }}>Memuat data profil...</div>;
+    return <div style={{ padding: "40px", textAlign: "center", color: "#2b3674", fontWeight: "bold" }}>Memuat data profil...</div>;
   }
 
   return (
     <div className="profile-layout">
       {/* SIDEBAR KIRI */}
       <aside className="profile-sidebar">
-        
-        {/* BAGIAN YANG DIPERBAIKI: HEADER SIDEBAR */}
         <div className="sidebar-header">
           <span className="sidebar-subtitle">WORKSPACE</span>
           <h2 className="sidebar-title">Traveler Area</h2>
@@ -84,7 +126,6 @@ const ProfilePage: React.FC = () => {
         <div className="content-grid">
           {/* KOLOM KIRI */}
           <div className="grid-left">
-            {/* Form Informasi Profil */}
             <section className="card form-card">
               <div className="card-header">
                 <div className="icon-circle bg-purple-light">
@@ -126,47 +167,60 @@ const ProfilePage: React.FC = () => {
               </form>
             </section>
 
-            {/* Banner Penawaran */}
             <section className="banner-card">
               <div className="banner-content">
                 <span className="badge-gold">PENAWARAN EKSKLUSIF</span>
                 <h3>Luxury Stay di Bandung</h3>
-                <p>Diskon 20% khusus untuk Silver Member.</p>
+                <p>Diskon 20% khusus untuk {tierInfo.name}.</p>
               </div>
             </section>
           </div>
 
           {/* KOLOM KANAN */}
           <div className="grid-right">
-            {/* Gamification Card */}
+            
+            {/* GAMIFICATION CARD: TIER & PROGRESS */}
             <section className="card gamification-card">
-              <span className="member-badge">SILVER MEMBER</span>
+              <span className="member-badge" style={{ backgroundColor: tierInfo.color }}>
+                {tierInfo.name}
+              </span>
               <p className="gamification-title">Total Jarak Tempuh</p>
               <h2 className="gamification-value">
-                1.240 <span>km via darat</span>
+                {formData.totalDistance.toLocaleString('id-ID')} <span>km via darat</span>
               </h2>
 
               <div className="progress-container">
                 <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: "62%" }}></div>
+                  <div className="progress-fill" style={{ width: `${tierInfo.progress}%`, backgroundColor: tierInfo.color }}></div>
                 </div>
-                <p className="progress-text">760 km lagi menuju tingkatan Gold Member</p>
+                <p className="progress-text">
+                  {tierInfo.remaining > 0 
+                    ? `${tierInfo.remaining.toLocaleString('id-ID')} km lagi menuju tingkatan ${tierInfo.nextTier}` 
+                    : "Anda telah mencapai tingkatan tertinggi!"}
+                </p>
               </div>
             </section>
 
-            {/* Daftar Badge */}
+            {/* GAMIFICATION CARD: BADGE LIST */}
             <section className="card badge-list-card">
               <div className="card-header-flex">
                 <h3>Badge Saya</h3>
-                <a href="#semua" className="link-purple">
-                  Lihat Semua
-                </a>
               </div>
               <div className="badge-grid">
-                <BadgeItem icon={<FaBus />} title="First Trip" description="Perjalanan darat pertama Anda" />
-                <BadgeItem icon={<FaStar />} title="Explorer" description="Mengunjungi 5 kota berbeda" />
-                <BadgeItem icon={<FaWalking />} title="Adventurer" description="Menjelajah rute pegunungan" />
-                <BadgeItem icon={<FaTrain />} title="Globetrotter" description="Gunakan semua moda darat" />
+                {allBadges.map((badge) => {
+                  // Cek apakah jarak tempuh user sudah memenuhi syarat badge
+                  const isUnlocked = formData.totalDistance >= badge.reqDistance;
+                  
+                  return (
+                    <div key={badge.id} style={{ opacity: isUnlocked ? 1 : 0.4, filter: isUnlocked ? 'none' : 'grayscale(100%)' }}>
+                      <BadgeItem 
+                        icon={isUnlocked ? badge.icon : <FaLock />} 
+                        title={badge.title} 
+                        description={isUnlocked ? badge.desc : `Butuh ${badge.reqDistance} km`} 
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </section>
 
@@ -177,8 +231,9 @@ const ProfilePage: React.FC = () => {
               </div>
               <h3>Rencana Berikutnya?</h3>
               <p>Dapatkan rekomendasi rute kereta wisata terbaik.</p>
-              <button className="btn-outline-purple">Mulai Eksplorasi</button>
+              <a href="/"><button className="btn-outline-purple">Mulai Eksplorasi</button></a>
             </section>
+            
           </div>
         </div>
       </main>

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBullhorn, FaSearch, FaTrash } from "react-icons/fa";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
+import { getAllPromos, createPromo, updatePromo, deletePromo, uploadImage } from "../services/adminService";
 import "./AdminPromoPage.css";
 
-// --- Interfaces ---
 interface PromoCard {
   id: string;
   title: string;
@@ -24,62 +24,29 @@ const AdminPromoPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
 
-  // --- DATA STATE ---
-  const [promos, setPromos] = useState<PromoCard[]>([
-    {
-      id: "1",
-      title: "Liburan Hemat Awal Tahun",
-      status: "Aktif",
-      code: "PEGIHEMAT24",
-      category: "Tiket Pesawat",
-      discount: "25% OFF",
-      validUntil: "31 Jan 2024",
-      usageCount: 450,
-      usageLimit: 1000,
-      img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=150&q=80",
-    },
-    {
-      id: "2",
-      title: "Luxury Staycation Bali",
-      status: "Draft",
-      code: "BALILUX100",
-      category: "Hotel",
-      discount: "Rp 1.500.000",
-      validUntil: "15 Feb 2024",
-      usageCount: 0,
-      usageLimit: 500,
-      img: "https://images.unsplash.com/photo-1542314831-c6a4d14d8628?auto=format&fit=crop&w=150&q=80",
-    },
-    {
-      id: "3",
-      title: "Promo Akhir Tahun 2023",
-      status: "Berakhir",
-      code: "BYE2023",
-      category: "Semua Kategori",
-      discount: "50% OFF",
-      validUntil: "31 Des 2023",
-      usageCount: 2500,
-      usageLimit: 2500,
-      img: "https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=150&q=80",
-    },
-    {
-      id: "4",
-      title: "Jelajah Eropa Bersama",
-      status: "Aktif",
-      code: "EUROGROUP",
-      category: "Grup Wisata",
-      discount: "Rp 2.000.000",
-      validUntil: "10 Mar 2024",
-      usageCount: 12,
-      usageLimit: 50,
-      img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=150&q=80",
-    },
-  ]);
+  const [promos, setPromos] = useState<PromoCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
 
-  // --- STATE MODAL CRUD ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"add" | "edit">("add");
   const [formData, setFormData] = useState<Partial<PromoCard>>({});
+
+  const fetchPromos = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getAllPromos();
+      setPromos(response.data);
+    } catch (error) {
+      console.error("Gagal mengambil data promo:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPromos();
+  }, []);
 
   const handleOpenAdd = () => {
     setModalType("add");
@@ -93,45 +60,87 @@ const AdminPromoPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus promo ini?")) {
-      setPromos(promos.filter((p) => p.id !== id));
+      try {
+        await deletePromo(id);
+        fetchPromos();
+      } catch (error) {
+        alert("Gagal menghapus promo.");
+      }
     }
   };
 
-  const handleStatusChange = (id: string, newStatus: "Aktif" | "Draft" | "Berakhir") => {
-    setPromos(promos.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+  const handleStatusChange = async (id: string, newStatus: "Aktif" | "Draft" | "Berakhir") => {
+    const targetPromo = promos.find(p => p.id === id);
+    if (targetPromo) {
+      try {
+        await updatePromo(id, { ...targetPromo, status: newStatus });
+        fetchPromos();
+      } catch (error) {
+        alert("Gagal memperbarui status promo.");
+      }
+    }
   };
 
-  const handleDuplicate = (promo: PromoCard) => {
+  const handleDuplicate = async (promo: PromoCard) => {
     const duplicatedPromo = {
       ...promo,
-      id: Date.now().toString(),
       title: `${promo.title} (Copy)`,
-      status: "Draft" as const,
+      status: "Draft",
       usageCount: 0,
     };
-    setPromos([...promos, duplicatedPromo]);
+   
+    delete (duplicatedPromo as any).id; 
+
+    try {
+      await createPromo(duplicatedPromo);
+      fetchPromos();
+      alert("Promo berhasil diduplikat menjadi Draft.");
+    } catch (error) {
+      alert("Gagal menduplikat promo.");
+    }
   };
 
-  const handleSave = () => {
+  // FUNGSI SIMPAN (TAMBAH/EDIT) API
+  const handleSave = async () => {
     if (!formData.title?.trim() || !formData.code?.trim() || !formData.discount || !formData.validUntil) {
       alert("Peringatan: Harap lengkapi semua kolom sebelum menyimpan!");
       return;
     }
 
-    if (modalType === "add") {
-      const newPromo = {
-        ...formData,
-        id: Date.now().toString(),
-        usageCount: 0,
-        img: formData.img || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=150&q=80",
-      } as PromoCard;
-      setPromos([...promos, newPromo]);
-    } else {
-      setPromos(promos.map((p) => (p.id === formData.id ? (formData as PromoCard) : p)));
+    try {
+      if (modalType === "add") {
+        await createPromo(formData);
+      } else {
+        if (formData.id) await updatePromo(formData.id, formData);
+      }
+      setIsModalOpen(false);
+      fetchPromos();
+      alert("Data promo berhasil disimpan!");
+    } catch (error) {
+      console.error("Gagal menyimpan promo:", error);
+      alert("Terjadi kesalahan saat menyimpan ke database.");
     }
-    setIsModalOpen(false);
+  };
+
+  // FUNGSI UPLOAD GAMBAR
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+
+      setIsUploadingImg(true);
+      try {
+        const response = await uploadImage(uploadData);
+        setFormData({ ...formData, img: response.data }); 
+      } catch (error) {
+        alert("Gagal mengupload gambar ke server.");
+      } finally {
+        setIsUploadingImg(false);
+      }
+    }
   };
 
   const filteredPromos = promos.filter((promo) => {
@@ -180,63 +189,70 @@ const AdminPromoPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="promo-cards-grid">
-            {filteredPromos.map((promo) => {
-              return (
-                <div className="promo-card" key={promo.id}>
-                  <img src={promo.img} alt={promo.title} className="p-card-img" />
+          {isLoading ? (
+             <p style={{ textAlign: 'center', color: '#8f9bba', marginTop: '40px' }}>Memuat data promo dari database...</p>
+          ) : (
+            <div className="promo-cards-grid">
+              {filteredPromos.map((promo) => {
+                return (
+                  <div className="promo-card" key={promo.id}>
+                    <img src={promo.img || "https://via.placeholder.com/150"} alt={promo.title} className="p-card-img" />
 
-                  <div className="p-card-info">
-                    {/* INFO PROMO */}
-                    <div className="p-card-title-row">
-                      <h4>{promo.title}</h4>
-                      <span className={`p-badge ${promo.status.toLowerCase()}`}>{promo.status}</span>
-                    </div>
-                    <div className="p-card-code-row">
-                      <span className="code-box">{promo.code}</span>
-                      <span className="dot">•</span>
-                      <span className="text-gray sm-text">{promo.category}</span>
-                    </div>
-                    <div className="p-card-details">
-                      <div>
-                        <label>Potongan Harga</label>
-                        <p className="fw-bold text-purple">{promo.discount}</p>
+                    <div className="p-card-info">
+                      {/* INFO PROMO */}
+                      <div className="p-card-title-row">
+                        <h4>{promo.title}</h4>
+                        <span className={`p-badge ${promo.status.toLowerCase()}`}>{promo.status}</span>
                       </div>
-                      <div>
-                        <label>{promo.status === "Berakhir" ? "Berakhir pada" : "Berlaku s/d"}</label>
-                        <p className="fw-bold">{promo.validUntil}</p>
+                      <div className="p-card-code-row">
+                        <span className="code-box">{promo.code}</span>
+                        <span className="dot">•</span>
+                        <span className="text-gray sm-text">{promo.category}</span>
                       </div>
-                    </div>
+                      <div className="p-card-details">
+                        <div>
+                          <label>Potongan Harga</label>
+                          <p className="fw-bold text-purple">{promo.discount}</p>
+                        </div>
+                        <div>
+                          <label>{promo.status === "Berakhir" ? "Berakhir pada" : "Berlaku s/d"}</label>
+                          <p className="fw-bold">{promo.validUntil}</p>
+                        </div>
+                      </div>
 
-                    {/* ACTIONS */}
-                    <div className="p-card-actions">
-                      <button
-                        className="btn-outline-primary"
-                        onClick={() => {
-                          if (promo.status === "Aktif") handleOpenEdit(promo);
-                          else if (promo.status === "Draft") handleStatusChange(promo.id, "Aktif");
-                          else handleDuplicate(promo);
-                        }}
-                      >
-                        {promo.status === "Aktif" ? "Edit" : promo.status === "Draft" ? "Publikasikan" : "Duplikat"}
-                      </button>
+                      {/* ACTIONS */}
+                      <div className="p-card-actions">
+                        <button
+                          className="btn-outline-primary"
+                          onClick={() => {
+                            if (promo.status === "Aktif") handleOpenEdit(promo);
+                            else if (promo.status === "Draft") handleStatusChange(promo.id, "Aktif");
+                            else handleDuplicate(promo);
+                          }}
+                        >
+                          {promo.status === "Aktif" ? "Edit" : promo.status === "Draft" ? "Publikasikan" : "Duplikat"}
+                        </button>
 
-                      {promo.status === "Aktif" && (
-                        <button className="btn-text text-red" onClick={() => handleStatusChange(promo.id, "Berakhir")}>
-                          Hentikan
-                        </button>
-                      )}
-                      {(promo.status === "Draft" || promo.status === "Berakhir") && (
-                        <button className="btn-icon-transparent text-red" onClick={() => handleDelete(promo.id)} title="Hapus">
-                          <FaTrash />
-                        </button>
-                      )}
+                        {promo.status === "Aktif" && (
+                          <button className="btn-text text-red" onClick={() => handleStatusChange(promo.id, "Berakhir")}>
+                            Hentikan
+                          </button>
+                        )}
+                        {(promo.status === "Draft" || promo.status === "Berakhir") && (
+                          <button className="btn-icon-transparent text-red" onClick={() => handleDelete(promo.id)} title="Hapus">
+                            <FaTrash />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+              {filteredPromos.length === 0 && (
+                 <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#8f9bba' }}>Tidak ada promo yang ditemukan.</p>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -300,17 +316,9 @@ const AdminPromoPage: React.FC = () => {
 
             <div className="form-group">
               <label>Upload Banner Promo</label>
-              <input
-                type="file"
-                accept="image/*"
-                className="file-input"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setFormData({ ...formData, img: URL.createObjectURL(e.target.files[0]) });
-                  }
-                }}
-              />
-              {formData.img && (
+              <input type="file" accept="image/*" className="file-input" onChange={handleImageUpload} />
+              {isUploadingImg && <p style={{color: '#4318ff', fontSize: '12px'}}>Mengunggah gambar ke server...</p>}
+              {formData.img && !isUploadingImg && (
                 <div className="upload-preview">
                   <img src={formData.img} alt="Preview" />
                 </div>

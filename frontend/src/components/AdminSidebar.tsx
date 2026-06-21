@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   FaHome, FaUsers, FaHotel, FaMapMarkerAlt, FaTag, FaBus, 
-  FaGlobe, FaChartLine, FaCog, FaSignOutAlt, 
+  FaGlobe, FaChartLine, FaSignOutAlt, 
   FaFileInvoiceDollar // <-- Tambahkan icon ini untuk menu Pembayaran
 } from 'react-icons/fa';
 

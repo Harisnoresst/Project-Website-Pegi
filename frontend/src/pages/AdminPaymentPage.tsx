@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaCheck, FaTimes, FaEye, FaClock, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import "./AdminPaymentPage.css";
-import {useTransaction } from "../context/TransactionContext";
+import { useTransaction } from "../context/TransactionContext";
+// 1. IMPORT API UPDATE DATABASE
+import { updatePaymentStatus } from "../services/adminService";
 
 interface Transaction {
   id: string;
@@ -24,26 +26,50 @@ const AdminPaymentPage: React.FC = () => {
   const [globalSearch, setGlobalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
   const [typeFilter, setTypeFilter] = useState("Semua Layanan");
-  const { transactions, setTransactions } = useTransaction();
+
+  // 2. AMBIL refreshPayments UNTUK SINKRONISASI NOTIFIKASI
+  const { transactions, refreshPayments } = useTransaction();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  // --- STATE PAGINATION ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Reset halaman ke 1 jika filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [globalSearch, statusFilter, typeFilter]);
 
   const handleOpenProof = (tx: Transaction) => {
     setSelectedTx(tx);
     setIsModalOpen(true);
   };
 
-  const handleApprove = (id: string) => {
+  // 3. FUNGSI APPROVE KE DATABASE
+  const handleApprove = async (id: string) => {
     if (window.confirm("Terima pembayaran ini? Transaksi akan berstatus Berhasil.")) {
-      setTransactions(transactions.map((t) => (t.id === id ? { ...t, status: "Berhasil" } : t)));
-      setIsModalOpen(false);
+      try {
+        await updatePaymentStatus(id, { status: "Berhasil" });
+        refreshPayments(); // Tarik ulang data dari DB agar Notif & Tabel sinkron!
+        setIsModalOpen(false);
+      } catch (error) {
+        alert("Gagal memverifikasi pembayaran.");
+      }
     }
   };
 
-  const handleReject = (id: string) => {
+  // 4. FUNGSI REJECT KE DATABASE
+  const handleReject = async (id: string) => {
     if (window.confirm("Tolak pembayaran ini? Pelanggan akan diminta mengunggah ulang bukti transfer.")) {
-      setTransactions(transactions.map((t) => (t.id === id ? { ...t, status: "Ditolak" } : t)));
-      setIsModalOpen(false);
+      try {
+        await updatePaymentStatus(id, { status: "Ditolak" });
+        refreshPayments(); // Tarik ulang data dari DB agar Notif & Tabel sinkron!
+        setIsModalOpen(false);
+      } catch (error) {
+        alert("Gagal menolak pembayaran.");
+      }
     }
   };
 
@@ -55,9 +81,13 @@ const AdminPaymentPage: React.FC = () => {
     return matchSearch && matchStatus && matchType;
   });
 
+  // --- LOGIKA PAGINATION ---
+  const totalPages = Math.ceil(filteredTx.length / itemsPerPage);
+  const currentTableData = filteredTx.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="admin-layout">
-      <AdminSidebar activeMenu="pembayaran" /> 
+      <AdminSidebar activeMenu="pembayaran" />
       <main className="admin-main">
         <AdminTopbar showSearch={true} searchQuery={globalSearch} setSearchQuery={setGlobalSearch} placeholder="Cari ID Transaksi atau Nama..." />
 
@@ -132,7 +162,8 @@ const AdminPaymentPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTx.map((tx) => (
+                    {/* GUNAKAN currentTableData BUKAN filteredTx */}
+                    {currentTableData.map((tx) => (
                       <tr key={tx.id}>
                         <td>
                           <span className="tx-id">{tx.txId}</span>
@@ -142,10 +173,9 @@ const AdminPaymentPage: React.FC = () => {
                           <span className="fw-bold text-dark d-block">{tx.serviceName}</span>
                           <span className="text-gray sm-text">{tx.serviceType}</span>
                         </td>
-                        <td className="fw-bold text-dark">{tx.amount}
-                            {tx.isSplitBill && (
-                            <span className="text-orange sm-text fw-bold">💳 Split Bill (1/{tx.splitCount})</span>
-                          )}
+                        <td className="fw-bold text-dark">
+                          {tx.amount}
+                          {tx.isSplitBill && <span className="text-orange sm-text fw-bold d-block mt-5">💳 Split Bill (1/{tx.splitCount})</span>}
                         </td>
                         <td className="text-gray sm-text">{tx.date}</td>
                         <td>
@@ -171,17 +201,43 @@ const AdminPaymentPage: React.FC = () => {
                         </td>
                       </tr>
                     ))}
+                    {currentTableData.length === 0 && (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: "center", padding: "20px" }}>
+                          Tidak ada transaksi yang ditemukan.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
 
+                {/* PAGINATION DINAMIS */}
                 <div className="table-footer">
                   <span className="text-gray sm-text">
-                    Menampilkan 1-{filteredTx.length} dari {transactions.length} transaksi
+                    Menampilkan halaman {currentPage} dari {totalPages || 1} ({filteredTx.length} transaksi)
                   </span>
                   <div className="pagination-controls">
-                    <button className="page-btn">{"<"}</button>
-                    <button className="page-btn active">1</button>
-                    <button className="page-btn">{">"}</button>
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      style={{ cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+                    >
+                      {"<"}
+                    </button>
+                    {[...Array(totalPages)].map((_, idx) => (
+                      <button key={idx + 1} className={`page-btn ${currentPage === idx + 1 ? "active" : ""}`} onClick={() => setCurrentPage(idx + 1)}>
+                        {idx + 1}
+                      </button>
+                    ))}
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      style={{ cursor: currentPage === totalPages || totalPages === 0 ? "not-allowed" : "pointer", opacity: currentPage === totalPages || totalPages === 0 ? 0.5 : 1 }}
+                    >
+                      {">"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -189,6 +245,7 @@ const AdminPaymentPage: React.FC = () => {
           </div>
         </div>
       </main>
+
       {/* MODAL LIHAT BUKTI */}
       {isModalOpen && selectedTx && (
         <div className="modal-overlay">
@@ -221,9 +278,7 @@ const AdminPaymentPage: React.FC = () => {
                 </>
               )}
               <div className="detail-row">
-                <span className="detail-label">
-                  {selectedTx.isSplitBill ? 'Porsi Dibayar (Orang Ini)' : 'Total Dibayar'}
-                </span>
+                <span className="detail-label">{selectedTx.isSplitBill ? "Porsi Dibayar (Orang Ini)" : "Total Dibayar"}</span>
                 <span className="detail-value fw-bold">{selectedTx.amount}</span>
               </div>
             </div>
