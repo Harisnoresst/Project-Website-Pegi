@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { getProfile } from "../services/profileService";
-import { 
-  FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft, 
-  FaBus, FaStar, FaWalking, FaTrain, FaMapMarkedAlt, FaPen, FaLock 
-} from "react-icons/fa";
+import { FaBus, FaStar, FaWalking, FaTrain, FaMapMarkedAlt, FaPen, FaLock } from "react-icons/fa";
 import BadgeItem from "../components/BadgeItem";
+import NavbarGuest from "../components/NavbarGuest"; // Import Navbar
 import "./ProfilePage.css";
+import TravelerSidebar from "../components/TravelerSidebar";
 
 const ProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,14 +13,13 @@ const ProfilePage: React.FC = () => {
     telepon: "",
     kota: "",
     alamat: "",
-    totalDistance: 0, // <-- Tambahkan state jarak tempuh dari database
+    totalDistance: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getProfile()
       .then((data) => {
-        // Asumsi backend mengembalikan totalDistance. Jika belum ada, kita beri default 0.
         setFormData({ ...data, totalDistance: data.totalDistance || 0 });
         setLoading(false);
       })
@@ -30,7 +28,7 @@ const ProfilePage: React.FC = () => {
         setLoading(false);
       });
   }, []);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -44,38 +42,18 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // --- LOGIKA GAMIFIKASI: TIER MEMBERSHIP ---
   const getTierInfo = (distance: number) => {
     if (distance >= 3000) {
-      return { 
-        name: "GOLD MEMBER", 
-        nextTier: "MAX", 
-        progress: 100, 
-        remaining: 0,
-        color: "#fbbf24" // Kuning Emas
-      };
+      return { name: "GOLD MEMBER", nextTier: "MAX", progress: 100, remaining: 0, color: "#fbbf24" };
     } else if (distance >= 1000) {
-      return { 
-        name: "SILVER MEMBER", 
-        nextTier: "Gold Member", 
-        progress: (distance / 3000) * 100, 
-        remaining: 3000 - distance,
-        color: "#9ca3af" // Abu-abu Perak
-      };
+      return { name: "SILVER MEMBER", nextTier: "Gold Member", progress: (distance / 3000) * 100, remaining: 3000 - distance, color: "#9ca3af" };
     } else {
-      return { 
-        name: "BRONZE MEMBER", 
-        nextTier: "Silver Member", 
-        progress: (distance / 1000) * 100, 
-        remaining: 1000 - distance,
-        color: "#b45309" // Coklat Perunggu
-      };
+      return { name: "BRONZE MEMBER", nextTier: "Silver Member", progress: (distance / 1000) * 100, remaining: 1000 - distance, color: "#b45309" };
     }
   };
 
   const tierInfo = getTierInfo(formData.totalDistance);
 
-  // --- LOGIKA GAMIFIKASI: BADGE SYSTEM ---
   const allBadges = [
     { id: 1, icon: <FaBus />, title: "First Trip", desc: "Perjalanan pertama Anda", reqDistance: 1 },
     { id: 2, icon: <FaStar />, title: "Explorer", desc: "Menempuh 500+ km", reqDistance: 500 },
@@ -88,155 +66,119 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="profile-layout">
-      {/* SIDEBAR KIRI */}
-      <aside className="profile-sidebar">
-        <div className="sidebar-header">
-          <span className="sidebar-subtitle">WORKSPACE</span>
-          <h2 className="sidebar-title">Traveler Area</h2>
-        </div>
+    <div className="page-wrapper">
+      <NavbarGuest />
 
-        <nav className="sidebar-nav">
-          <a href="/profil" className="nav-item active">
-            <FaUserCircle className="nav-icon" /> Profil Saya
-          </a>
-          <a href="/history" className="nav-item">
-            <FaHistory className="nav-icon" /> Riwayat Booking
-          </a>
-          <a href="/wishlist" className="nav-item">
-            <FaHeart className="nav-icon" /> Wishlist Saya
-          </a>
-          <a href="/grup" className="nav-item">
-            <FaUsers className="nav-icon" /> Grup Perjalanan Saya
-          </a>
-        </nav>
+      <div className="profile-layout">
+       <TravelerSidebar activeMenu="profil" />
 
-        <button className="btn-back">
-          <FaArrowLeft /> Kembali ke Beranda
-        </button>
-      </aside>
+        <main className="profile-main">
+          <header className="main-header">
+            <h1>Profil Saya</h1>
+            <p>Kelola informasi pribadi dan lihat pencapaian perjalanan Anda.</p>
+          </header>
 
-      {/* KONTEN UTAMA */}
-      <main className="profile-main">
-        <header className="main-header">
-          <h1>Profil Saya</h1>
-          <p>Kelola informasi pribadi dan lihat pencapaian perjalanan Anda.</p>
-        </header>
-
-        <div className="content-grid">
-          {/* KOLOM KIRI */}
-          <div className="grid-left">
-            <section className="card form-card">
-              <div className="card-header">
-                <div className="icon-circle bg-purple-light">
-                  <FaPen className="text-purple" />
-                </div>
-                <h3>Informasi Profil</h3>
-              </div>
-
-              <form className="profile-form">
-                <div className="form-row">
-                  <div className="input-group">
-                    <label>Nama Lengkap</label>
-                    <input type="text" name="nama" value={formData.nama} onChange={handleChange} />
+          <div className="content-grid">
+            <div className="grid-left">
+              <section className="card form-card">
+                <div className="card-header">
+                  <div className="icon-circle bg-purple-light">
+                    <FaPen className="text-purple" />
                   </div>
-                  <div className="input-group">
-                    <label>Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} />
-                  </div>
+                  <h3>Informasi Profil</h3>
                 </div>
-                <div className="form-row">
-                  <div className="input-group">
-                    <label>Nomor Telepon</label>
-                    <input type="text" name="telepon" value={formData.telepon} onChange={handleChange} />
-                  </div>
-                  <div className="input-group">
-                    <label>Kota Asal</label>
-                    <input type="text" name="kota" value={formData.kota} onChange={handleChange} />
-                  </div>
-                </div>
-                <div className="input-group">
-                  <label>Alamat</label>
-                  <textarea name="alamat" value={formData.alamat} onChange={handleChange} rows={3}></textarea>
-                </div>
-                <div className="form-actions">
-                  <button className="btn-save" onClick={handleSave}>
-                    Simpan Perubahan
-                  </button>
-                </div>
-              </form>
-            </section>
 
-            <section className="banner-card">
-              <div className="banner-content">
-                <span className="badge-gold">PENAWARAN EKSKLUSIF</span>
-                <h3>Luxury Stay di Bandung</h3>
-                <p>Diskon 20% khusus untuk {tierInfo.name}.</p>
-              </div>
-            </section>
-          </div>
-
-          {/* KOLOM KANAN */}
-          <div className="grid-right">
-            
-            {/* GAMIFICATION CARD: TIER & PROGRESS */}
-            <section className="card gamification-card">
-              <span className="member-badge" style={{ backgroundColor: tierInfo.color }}>
-                {tierInfo.name}
-              </span>
-              <p className="gamification-title">Total Jarak Tempuh</p>
-              <h2 className="gamification-value">
-                {formData.totalDistance.toLocaleString('id-ID')} <span>km via darat</span>
-              </h2>
-
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${tierInfo.progress}%`, backgroundColor: tierInfo.color }}></div>
-                </div>
-                <p className="progress-text">
-                  {tierInfo.remaining > 0 
-                    ? `${tierInfo.remaining.toLocaleString('id-ID')} km lagi menuju tingkatan ${tierInfo.nextTier}` 
-                    : "Anda telah mencapai tingkatan tertinggi!"}
-                </p>
-              </div>
-            </section>
-
-            {/* GAMIFICATION CARD: BADGE LIST */}
-            <section className="card badge-list-card">
-              <div className="card-header-flex">
-                <h3>Badge Saya</h3>
-              </div>
-              <div className="badge-grid">
-                {allBadges.map((badge) => {
-                  // Cek apakah jarak tempuh user sudah memenuhi syarat badge
-                  const isUnlocked = formData.totalDistance >= badge.reqDistance;
-                  
-                  return (
-                    <div key={badge.id} style={{ opacity: isUnlocked ? 1 : 0.4, filter: isUnlocked ? 'none' : 'grayscale(100%)' }}>
-                      <BadgeItem 
-                        icon={isUnlocked ? badge.icon : <FaLock />} 
-                        title={badge.title} 
-                        description={isUnlocked ? badge.desc : `Butuh ${badge.reqDistance} km`} 
-                      />
+                <form className="profile-form">
+                  <div className="form-row">
+                    <div className="input-group">
+                      <label>Nama Lengkap</label>
+                      <input type="text" name="nama" value={formData.nama} onChange={handleChange} />
                     </div>
-                  );
-                })}
-              </div>
-            </section>
+                    <div className="input-group">
+                      <label>Email</label>
+                      <input type="email" name="email" value={formData.email} onChange={handleChange} />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="input-group">
+                      <label>Nomor Telepon</label>
+                      <input type="text" name="telepon" value={formData.telepon} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <label>Kota Asal</label>
+                      <input type="text" name="kota" value={formData.kota} onChange={handleChange} />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>Alamat</label>
+                    <textarea name="alamat" value={formData.alamat} onChange={handleChange} rows={3}></textarea>
+                  </div>
+                  <div className="form-actions">
+                    <button className="btn-save" onClick={handleSave}>
+                      Simpan Perubahan
+                    </button>
+                  </div>
+                </form>
+              </section>
 
-            {/* Rencana Berikutnya */}
-            <section className="card plan-card">
-              <div className="icon-circle bg-purple-light">
-                <FaMapMarkedAlt className="text-purple" />
-              </div>
-              <h3>Rencana Berikutnya?</h3>
-              <p>Dapatkan rekomendasi rute kereta wisata terbaik.</p>
-              <a href="/"><button className="btn-outline-purple">Mulai Eksplorasi</button></a>
-            </section>
-            
+              <section className="banner-card">
+                <div className="banner-content">
+                  <span className="badge-gold">PENAWARAN EKSKLUSIF</span>
+                  <h3>Luxury Stay di Bandung</h3>
+                  <p>Diskon 20% khusus untuk {tierInfo.name}.</p>
+                </div>
+              </section>
+            </div>
+
+            <div className="grid-right">
+              <section className="card gamification-card">
+                <span className="member-badge" style={{ backgroundColor: tierInfo.color }}>
+                  {tierInfo.name}
+                </span>
+                <p className="gamification-title">Total Jarak Tempuh</p>
+                <h2 className="gamification-value">
+                  {formData.totalDistance.toLocaleString("id-ID")} <span>km via darat</span>
+                </h2>
+
+                <div className="progress-container">
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${tierInfo.progress}%`, backgroundColor: tierInfo.color }}></div>
+                  </div>
+                  <p className="progress-text">{tierInfo.remaining > 0 ? `${tierInfo.remaining.toLocaleString("id-ID")} km lagi menuju tingkatan ${tierInfo.nextTier}` : "Anda telah mencapai tingkatan tertinggi!"}</p>
+                </div>
+              </section>
+
+              <section className="card badge-list-card">
+                <div className="card-header-flex">
+                  <h3>Badge Saya</h3>
+                </div>
+                <div className="badge-grid">
+                  {allBadges.map((badge) => {
+                    const isUnlocked = formData.totalDistance >= badge.reqDistance;
+
+                    return (
+                      <div key={badge.id} style={{ opacity: isUnlocked ? 1 : 0.4, filter: isUnlocked ? "none" : "grayscale(100%)" }}>
+                        <BadgeItem icon={isUnlocked ? badge.icon : <FaLock />} title={badge.title} description={isUnlocked ? badge.desc : `Butuh ${badge.reqDistance} km`} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <section className="card plan-card">
+                <div className="icon-circle bg-purple-light">
+                  <FaMapMarkedAlt className="text-purple" />
+                </div>
+                <h3>Rencana Berikutnya?</h3>
+                <p>Dapatkan rekomendasi rute kereta wisata terbaik.</p>
+                <a href="/">
+                  <button className="btn-outline-purple">Mulai Eksplorasi</button>
+                </a>
+              </section>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

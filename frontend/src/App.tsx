@@ -15,6 +15,8 @@ import TransportSearchPage from "./pages/TransportSearchPage";
 import ProfilePage from "./pages/ProfilePage";
 import BookingHistoryPage from "./pages/BookingHistoryPage";
 import WishlistPage from "./pages/WishlistPage";
+import GrupList from "./pages/GrupList";
+import GrupChat from "./pages/GroupChat";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserPage from "./pages/AdminUserPage";
@@ -43,6 +45,9 @@ function App() {
   if (path === "/profile") return <ProfilePage />;
   if (path === "/history") return <BookingHistoryPage />;
   if (path === "/wishlist") return <WishlistPage />;
+  if (path === "/grup") return <GrupList />;
+  if (path === "/grup/chat") return <GrupChat/>
+
 
   if (path === "/admin") return <AdminDashboard />;
   if (path === "/admin/users") return <AdminUserPage />;
