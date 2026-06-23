@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-import org.springframework.cglib.core.Local;
-
 @Entity
 @Data
 @Table(name= "bookings")
@@ -16,13 +14,19 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // @ManyToOne
-    // @JoinColumn(name = "user_id")
-    // private User user;
-
     @ManyToOne
-    @JoinColumn(name = "hotel_id")
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // Relasi ke Hotel (nullable = true berarti boleh kosong)
+    @ManyToOne
+    @JoinColumn(name = "hotel_id", nullable = true)
     private Hotel hotel;
+
+    // Tambahkan relasi ke Destination di sini
+    @ManyToOne
+    @JoinColumn(name = "destination_id", nullable = true)
+    private Destination destination; // Asumsi kamu sudah membuat file Destination.java
 
     private LocalDateTime bookingDate;
     private Integer totalGuests;
@@ -30,5 +34,4 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
-    
 }

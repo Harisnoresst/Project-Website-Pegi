@@ -23,7 +23,7 @@ public class CrowdCalculationService {
         List<Destination> destinations = destinationRepository.findAll();
 
         for (Destination dest : destinations) {           
-            long totalBookings = bookingRepository.countByDestinationIdAndStatus(dest.getId(), BookingStatus.CONFIRMED);  
+            long totalBookings = bookingRepository.countByDestination_IdAndStatus(dest.getId(), BookingStatus.CONFIRMED);  
             if (totalBookings >= 100) {
                 dest.setCrowdLevel(CrowdLevel.RAMAI);
             } else if (totalBookings >= 50) {
