@@ -85,7 +85,7 @@
 
 .dest-table { 
   width: 100%; 
-  min-width: 800px; 
+  min-width: 850px; 
   border-collapse: collapse; 
 }
 .dest-table thead {
@@ -195,7 +195,7 @@
   align-items: center;
   padding: 18px 24px;
   background-color: #f8fafc;
-  min-width: 810px;
+  min-width: 860px;
 }
 .pagination-controls {
   display: flex;

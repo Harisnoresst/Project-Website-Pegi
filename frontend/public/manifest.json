@@ -7,18 +7,18 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/Pegi-72x72.svg",
-      "type": "image/svg+xml",
+      "src": "/Logo_Pegi_72x72.jpeg",
+      "type": "image/jpeg",
       "sizes": "72x72"
     },
     {
-      "src": "/Pegi-192x192.svg",
-      "type": "image/svg+xml",
+      "src": "/Logo_Pegi_192x192.jpeg",
+      "type": "image/jpeg",
       "sizes": "192x192"
     },
     {
-      "src": "/Pegi-512x512.svg",
-      "type": "image/svg+xml",
+      "src": "/Logo_Pegi_512x512.jpeg",
+      "type": "image/jpeg",
       "sizes": "512x512"
     }
   ],
