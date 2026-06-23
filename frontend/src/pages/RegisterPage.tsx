@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // Tambahan untuk pindah halaman
+import axios from "axios"; // Tambahan untuk nembak API Backend
 import "./RegisterPage.css";
 import NavbarGuest from "../components/NavbarGuest";
 
@@ -14,19 +16,53 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  
+  // State tambahan untuk menampilkan pesan sukses/error
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Reset pesan
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    // Validasi password dari sisi Frontend
     if (password !== confirmPassword) {
-      alert("Kata sandi tidak cocok!");
+      setErrorMsg("Kata sandi tidak cocok!");
       return;
     }
-    console.log("Register Data Submitted:", {
-      fullName,
-      email,
-      password,
-      acceptTerms,
-    });
+
+    try {
+      // Tembak API Register ke Backend Java
+      const response = await axios.post("http://localhost:8080/api/auth/register", {
+        name: fullName, // Sesuaikan dengan key "name" di AuthService.java
+        email: email,
+        password: password,
+      });
+
+      console.log("Registrasi Sukses:", response.data);
+      
+      // Tampilkan pesan sukses warna hijau
+      setSuccessMsg("Pendaftaran berhasil! Mengarahkan ke halaman login...");
+
+      // Tunggu 1.5 detik biar user baca pesannya, lalu pindah ke halaman Login
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Gagal daftar:", error);
+      // Tangkap pesan error dari Java (misal: "Email sudah terdaftar")
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg("Gagal terhubung ke server. Pastikan Backend nyala atau email mungkin sudah terdaftar.");
+      }
+    }
   };
 
   return (
@@ -61,13 +97,7 @@ const RegisterPage: React.FC = () => {
             <div className="form-header">
               <h1 className="logo-text">Pegi</h1>
               <div className="badge-bonus">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
                 </svg>
                 Bonus 100 Poin Pengguna Baru!
@@ -76,14 +106,23 @@ const RegisterPage: React.FC = () => {
 
             {/* Tabs */}
             <div className="auth-tabs">
-              <button
-                className="tab-btn"
-                onClick={() => (window.location.href = "/login")}
-              >
+              <button className="tab-btn" onClick={() => navigate("/login")}>
                 Masuk
               </button>
               <button className="tab-btn active">Daftar</button>
             </div>
+
+            {/* Area Pesan Notifikasi Sukses / Error */}
+            {errorMsg && (
+              <div style={{ color: "red", marginBottom: "15px", fontSize: "14px", backgroundColor: "#ffe6e6", padding: "10px", borderRadius: "5px" }}>
+                {errorMsg}
+              </div>
+            )}
+            {successMsg && (
+              <div style={{ color: "green", marginBottom: "15px", fontSize: "14px", backgroundColor: "#e6ffe6", padding: "10px", borderRadius: "5px" }}>
+                {successMsg}
+              </div>
+            )}
 
             {/* Form */}
             <form className="auth-form" onSubmit={handleSubmit}>
@@ -92,16 +131,7 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Nama Lengkap</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -122,16 +152,7 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Alamat Email</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                       <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
@@ -152,24 +173,8 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Kata Sandi</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect
-                        x="3"
-                        y="11"
-                        width="18"
-                        height="11"
-                        rx="2"
-                        ry="2"
-                      ></rect>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                   </span>
@@ -186,16 +191,7 @@ const RegisterPage: React.FC = () => {
                     className="input-icon-right"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
@@ -208,24 +204,8 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Konfirmasi Kata Sandi</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect
-                        x="3"
-                        y="11"
-                        width="18"
-                        height="11"
-                        rx="2"
-                        ry="2"
-                      ></rect>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                   </span>
@@ -242,16 +222,7 @@ const RegisterPage: React.FC = () => {
                     className="input-icon-right"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
@@ -269,13 +240,9 @@ const RegisterPage: React.FC = () => {
                 />
                 <span className="checkbox-label">
                   Saya menyetujui{" "}
-                  <a href="#terms" className="text-purple">
-                    Syarat & Ketentuan
-                  </a>{" "}
+                  <a href="#terms" className="text-purple">Syarat & Ketentuan</a>{" "}
                   serta{" "}
-                  <a href="#privacy" className="text-purple">
-                    Kebijakan Privasi
-                  </a>
+                  <a href="#privacy" className="text-purple">Kebijakan Privasi</a>
                 </span>
               </label>
 

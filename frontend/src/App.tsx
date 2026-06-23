@@ -1,4 +1,5 @@
 import React from "react";
+import { Routes, Route } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -29,37 +30,46 @@ import AdminMonitoringPage from "./pages/AdminMonitoringPage";
 import AdminPaymentPage from "./pages/AdminPaymentPage";
 
 function App() {
-  const path = window.location.pathname.toLowerCase();
+  return (
+    // React Router yang bakal otomatis mantau perubahan URL tanpa perlu refresh
+    <Routes>
+      {/* Rute Publik */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      
+      {/* Rute Hotel */}
+      <Route path="/hotel-search" element={<HotelSearchPage />} />
+      <Route path="/hotel-detail" element={<HotelDetailPage />} />
 
-  if (path === "/login") return <LoginPage />;
-  if (path === "/register") return <RegisterPage />;
+      {/* Rute Destinasi */}
+      <Route path="/destination-search" element={<DestinationSearchPage />} />
+      <Route path="/destination-detail" element={<DestinationDetailPage />} />
 
-  if (path === "/hotel-search") return <HotelSearchPage />;
-  if (path === "/hotel-detail") return <HotelDetailPage />;
+      {/* Rute Transportasi */}
+      <Route path="/transport-search" element={<TransportSearchPage />} />
 
-  if (path === "/destination-search") return <DestinationSearchPage />;
-  if (path === "/destination-detail") return <DestinationDetailPage />;
+      {/* Rute User */}
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/history" element={<BookingHistoryPage />} />
+      <Route path="/wishlist" element={<WishlistPage />} />
+      <Route path="/grup" element={<GrupList />} />
+      <Route path="/grup/chat" element={<GrupChat />} />
 
-  if (path === "/transport-search") return <TransportSearchPage />;
+      {/* Rute Admin */}
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<AdminUserPage />} />
+      <Route path="/admin/hotels" element={<AdminHotelPage />} />
+      <Route path="/admin/destinations" element={<AdminDestinationPage />} />
+      <Route path="/admin/promos" element={<AdminPromoPage />} />
+      <Route path="/admin/transport" element={<AdminTransportPage />} />
+      <Route path="/admin/groups" element={<AdminGroupPage />} />
+      <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
+      <Route path="/admin/payments" element={<AdminPaymentPage />} />
 
-  if (path === "/profile") return <ProfilePage />;
-  if (path === "/history") return <BookingHistoryPage />;
-  if (path === "/wishlist") return <WishlistPage />;
-  if (path === "/grup") return <GrupList />;
-  if (path === "/grup/chat") return <GrupChat/>
-
-
-  if (path === "/admin") return <AdminDashboard />;
-  if (path === "/admin/users") return <AdminUserPage />;
-  if (path === "/admin/hotels") return <AdminHotelPage />;
-  if (path === "/admin/destinations") return <AdminDestinationPage />;
-  if (path === "/admin/promos") return <AdminPromoPage />;
-  if (path === "/admin/transport") return <AdminTransportPage />;
-  if (path === "/admin/groups") return <AdminGroupPage />;
-  if (path === "/admin/monitoring") return <AdminMonitoringPage />;
-  if (path === "/admin/payments") return <AdminPaymentPage />;
-
-  return <HomePage />;
+      {/* Rute Default (Kalau user ngetik alamat sembarangan atau buka web pertama kali) */}
+      <Route path="*" element={<HomePage />} />
+    </Routes>
+  );
 }
 
 export default App;

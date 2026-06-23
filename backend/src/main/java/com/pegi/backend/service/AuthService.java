@@ -60,16 +60,47 @@ public class AuthService {
         return response;
     }
 
-    // ===== LOGIN — TAHAP 1: validasi password, kirim OTP ke email =====
+    // ===== LOGIN — TAHAP 1: validasi password, cek ADMIN bypass, atau kirim OTP =====
     public Map<String, Object> login(Map<String, String> request) {
         String email    = request.get("email");
         String password = request.get("password");
+
+        try {
+            // Validasi email + password
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
+        } catch (Exception e) {
+            // INI BAKAL NGE-PRINT ALASAN ASLINYA KE TERMINAL JAVA LU
+            System.err.println("!!! GAGAL LOGIN BRO !!! Alasan dari Java: " + e.getMessage());
+            throw new RuntimeException("Gagal Otentikasi: " + e.getMessage());
+        }
 
         // Validasi email + password dulu (kalau salah, langsung throw exception)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
 
+        // Ambil data user dari database untuk mengecek jabatannya (Role)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+        // Cek apakah user adalah ADMIN
+        if (user.getRole().getName() == RoleType.ADMIN) {
+            // JALUR TOL: Kalau ADMIN, langsung kasih JWT Token tanpa OTP
+            String token = jwtUtil.generateToken(email);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Login Admin Berhasil");
+            response.put("token", token);
+            response.put("name", user.getName());
+            response.put("email", user.getEmail());
+            response.put("role", user.getRole().getName().name());
+            return response;
+        }
+
+        // JALUR REGULER: Kalau bukan ADMIN (USER BIASA), lanjut kirim OTP
         // Generate kode OTP 6 digit acak
         String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
 
@@ -92,7 +123,7 @@ public class AuthService {
         return response;
     }
 
-    // ===== LOGIN — TAHAP 2: verifikasi OTP, baru kasih token =====
+    // ===== LOGIN — TAHAP 2: verifikasi OTP, baru kasih token ===== (tidak berubah)
     public Map<String, Object> verifyOtp(Map<String, String> request) {
         String email   = request.get("email");
         String otpCode = request.get("otpCode");
@@ -133,7 +164,7 @@ public class AuthService {
         return response;
     }
 
-    // ===== RESEND OTP — kalau user tidak terima/kode expired =====
+    // ===== RESEND OTP ===== (tidak berubah)
     public Map<String, Object> resendOtp(Map<String, String> request) {
         String email = request.get("email");
 

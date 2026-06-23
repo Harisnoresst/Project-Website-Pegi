@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; 
+import axios from "axios"; 
 import "./LoginPage.css";
 import NavbarGuest from "../components/NavbarGuest";
 
@@ -10,10 +12,46 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(""); 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate(); 
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login Data Submitted:", { email, password, rememberMe });
+    setErrorMsg(""); 
+
+    try {
+      // 1. Tembak API Login ke Backend Java
+      const response = await axios.post("http://localhost:8080/api/auth/login", {
+        email: email,
+        password: password,
+      });
+
+      // 2. CEK RESPONS BERDASARKAN JABATAN (ADMIN vs USER)
+      if (response.data.token) {
+        // JALUR ADMIN: Token langsung turun
+        localStorage.setItem("token", response.data.token);
+        console.log("Login Admin Sukses, Token disimpan!");
+        
+        // Pindah otomatis ke halaman Admin Dashboard
+        navigate("/admin"); 
+        
+      } else if (response.data.status === "otp_sent") {
+        // JALUR USER: Disuruh nunggu OTP
+        console.log("OTP dikirim ke email, pindah ke halaman verifikasi...");
+        
+        // Pindah ke halaman form input OTP (Kalian harus bikin file VerifyOtpPage.tsx nanti)
+        navigate("/verify-otp", { state: { email: email } });
+      }
+
+    } catch (error: any) {
+      console.error("Gagal login:", error);
+      if (error.response && error.response.status === 403) {
+        setErrorMsg("Akses ditolak, email atau password salah.");
+      } else {
+        setErrorMsg("Gagal terhubung ke server. Pastikan Backend nyala!");
+      }
+    }
   };
 
   return (
@@ -21,7 +59,6 @@ const LoginPage: React.FC = () => {
       <NavbarGuest />
 
       <div className="login-wrapper">
-        {/* SEBELAH KIRI - Hero Banner (Disembunyikan di Mobile) */}
         <div className="login-left">
           <div className="login-glass-card">
             <h3>Perjalanan yang Lebih Bermakna.</h3>
@@ -43,10 +80,8 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* SEBELAH KANAN - Form Area */}
         <div className="login-right">
           <div className="login-form-container">
-            {/* Header */}
             <div className="login-header">
               <h1 className="login-logo">Pegi</h1>
               <div className="login-badge">
@@ -63,34 +98,28 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Tabs */}
             <div className="login-tabs">
               <button className="login-tab-btn active">Masuk</button>
               <button
                 className="login-tab-btn"
-                onClick={() => (window.location.href = "/register")}
+                onClick={() => navigate("/register")}
               >
                 Daftar
               </button>
             </div>
 
-            {/* Form */}
+            {errorMsg && (
+              <div style={{ color: "red", marginBottom: "15px", fontSize: "14px", backgroundColor: "#ffe6e6", padding: "10px", borderRadius: "5px" }}>
+                {errorMsg}
+              </div>
+            )}
+
             <form className="login-form" onSubmit={handleSubmit}>
-              {/* Input Email */}
               <div className="login-input-group">
                 <label className="login-label">Email</label>
                 <div className="login-input-wrapper">
                   <span className="login-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                       <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
@@ -106,7 +135,6 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Input Password */}
               <div className="login-input-group">
                 <div className="login-input-header">
                   <label className="login-label">Kata Sandi</label>
@@ -116,24 +144,8 @@ const LoginPage: React.FC = () => {
                 </div>
                 <div className="login-input-wrapper">
                   <span className="login-icon-left">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect
-                        x="3"
-                        y="11"
-                        width="18"
-                        height="11"
-                        rx="2"
-                        ry="2"
-                      ></rect>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                   </span>
@@ -151,16 +163,7 @@ const LoginPage: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label="Toggle password visibility"
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
@@ -168,7 +171,6 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Checkbox Remember Me */}
               <label className="login-checkbox-group">
                 <input
                   type="checkbox"
@@ -180,20 +182,17 @@ const LoginPage: React.FC = () => {
                 </span>
               </label>
 
-              {/* Button Submit */}
               <button type="submit" className="login-btn-primary">
                 Masuk
               </button>
             </form>
 
-            {/* Divider */}
             <div className="login-divider">
               <div className="login-divider-line"></div>
               <span className="login-divider-text">ATAU MASUK DENGAN</span>
               <div className="login-divider-line"></div>
             </div>
 
-            {/* Social Buttons */}
             <div className="login-social-group">
               <button className="login-btn-social" type="button">
                 <FcGoogle />
@@ -205,12 +204,10 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Bottom Prompt */}
             <p className="login-prompt">
               Belum punya akun? <a href="/register">Daftar Sekarang</a>
             </p>
 
-            {/* Footer Links */}
             <div className="login-footer">
               <a href="#terms">Syarat & Ketentuan</a>
               <a href="#privacy">Kebijakan Privasi</a>
