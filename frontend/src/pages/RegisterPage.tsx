@@ -1,9 +1,9 @@
 // src/pages/RegisterPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // Tambahan untuk pindah halaman
-import axios from "axios"; // Tambahan untuk nembak API Backend
+import { useNavigate } from "react-router-dom"; // Menggunakan navigate untuk pindah halaman
+import axios from "axios"; 
 import "./RegisterPage.css";
 import NavbarGuest from "../components/NavbarGuest";
 
@@ -17,52 +17,128 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   
-  // State tambahan untuk menampilkan pesan sukses/error
+  // State untuk menampilkan pesan sukses/error di UI
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // State & Logika untuk OTP
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120); // 120 detik = 02:00
+
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Reset pesan
+  // Efek untuk menjalankan hitung mundur saat modal terbuka
+  useEffect(() => {
+    if (!showOtpModal || timeLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [showOtpModal, timeLeft]);
+
+  // Fungsi untuk memformat detik menjadi MM:SS (Contoh: 119 -> 01:59)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const secs = (seconds % 60).toString().padStart(2, "0");
+    return `${minutes}:${secs}`;
+  };
+
+  // Fungsi saat pengguna klik "Kirim Ulang Kode OTP"
+  const handleResendOtp = async () => {
+    setTimeLeft(120); // Reset timer kembali ke 2 menit
+    setOtp(""); // Kosongkan kotak input OTP
+    setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
 
-    // Validasi password dari sisi Frontend
+    try {
+      const response = await fetch("http://localhost:5000/auth/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        setErrorMsg("Gagal mengirim ulang kode. Silakan coba lagi.");
+      } else {
+        setSuccessMsg("Kode OTP baru berhasil dikirim!");
+      }
+    } catch (error) {
+      console.error("Error API:", error);
+      setErrorMsg("Tidak terhubung ke server, namun timer tetap direset (Mode Simulasi).");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (/^\d?$/.test(value)) {
+      const newOtp = otp.split("");
+      newOtp[index] = value;
+      setOtp(newOtp.join(""));
+    }
+  };
+
+  // Saat klik Daftar Akun
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
+
     if (password !== confirmPassword) {
       setErrorMsg("Kata sandi tidak cocok!");
       return;
     }
+    if (!acceptTerms) {
+      setErrorMsg("Anda harus menyetujui Syarat & Ketentuan.");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      // Tembak API Register ke Backend Java
-      const response = await axios.post("http://localhost:8080/api/auth/register", {
-        name: fullName, // Sesuaikan dengan key "name" di AuthService.java
-        email: email,
-        password: password,
+      const response = await fetch("http://localhost:5000/auth/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
 
-      console.log("Registrasi Sukses:", response.data);
-      
-      // Tampilkan pesan sukses warna hijau
-      setSuccessMsg("Pendaftaran berhasil! Mengarahkan ke halaman login...");
-
-      // Tunggu 1.5 detik biar user baca pesannya, lalu pindah ke halaman Login
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-
-    } catch (error: any) {
-      console.error("Gagal daftar:", error);
-      // Tangkap pesan error dari Java (misal: "Email sudah terdaftar")
-      if (error.response && error.response.data && error.response.data.message) {
-        setErrorMsg(error.response.data.message);
+      if (response.ok) {
+        setTimeLeft(120); // Mulai timer dari awal
+        setShowOtpModal(true); // Munculkan popup
       } else {
-        setErrorMsg("Gagal terhubung ke server. Pastikan Backend nyala atau email mungkin sudah terdaftar.");
+        const errorData = await response.json();
+        setErrorMsg(errorData.message || "Gagal mengirim OTP.");
       }
+    } catch (error) {
+      console.error("Error API:", error);
+      setErrorMsg("Gagal terhubung ke Server. Menjalankan mode Simulasi...");
+
+      // HANYA UNTUK SIMULASI (Otomatis buka modal jika API backend belum aktif)
+      setTimeLeft(120);
+      setShowOtpModal(true);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Saat klik Verifikasi di Modal OTP
+  const handleVerifyAndRegister = () => {
+    setIsLoading(true);
+    setErrorMsg("");
+
+    // Simulasi mengecek ke Database selama 1.5 detik
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowOtpModal(false);
+      navigate("/"); // Menggunakan React Router navigate menuju Dashboard
+    }, 1500);
   };
 
   return (
@@ -70,15 +146,10 @@ const RegisterPage: React.FC = () => {
       <NavbarGuest />
 
       <div className="register-wrapper">
-        {/* SEBELAH KIRI - Hero Banner */}
         <div className="register-left">
           <div className="glass-card">
             <h3>Perjalanan yang Lebih Bermakna.</h3>
-            <p>
-              Jelajahi keindahan Indonesia dengan kenyamanan yang belum pernah
-              ada sebelumnya. Dari hotel mewah hingga transportasi yang handal,
-              Pegi siap menemani setiap langkah Anda.
-            </p>
+            <p>Jelajahi keindahan Indonesia dengan kenyamanan yang belum pernah ada sebelumnya. Dari hotel mewah hingga transportasi yang handal, Pegi siap menemani setiap langkah Anda.</p>
             <div className="testimonial-info">
               <div className="avatar-group">
                 <div className="avatar"></div>
@@ -90,10 +161,8 @@ const RegisterPage: React.FC = () => {
           </div>
         </div>
 
-        {/* SEBELAH KANAN - Form Area */}
         <div className="register-right">
           <div className="form-container">
-            {/* Header */}
             <div className="form-header">
               <h1 className="logo-text">Pegi</h1>
               <div className="badge-bonus">
@@ -104,7 +173,6 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Tabs */}
             <div className="auth-tabs">
               <button className="tab-btn" onClick={() => navigate("/login")}>
                 Masuk
@@ -126,7 +194,6 @@ const RegisterPage: React.FC = () => {
 
             {/* Form */}
             <form className="auth-form" onSubmit={handleSubmit}>
-              {/* Input Nama Lengkap */}
               <div className="input-group">
                 <label className="input-label">Nama Lengkap</label>
                 <div className="input-wrapper">
@@ -147,7 +214,6 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Input Email */}
               <div className="input-group">
                 <label className="input-label">Alamat Email</label>
                 <div className="input-wrapper">
@@ -168,7 +234,6 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Input Password */}
               <div className="input-group">
                 <label className="input-label">Kata Sandi</label>
                 <div className="input-wrapper">
@@ -199,7 +264,6 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Input Konfirmasi Password */}
               <div className="input-group">
                 <label className="input-label">Konfirmasi Kata Sandi</label>
                 <div className="input-wrapper">
@@ -230,14 +294,8 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Checkbox Syarat & Ketentuan */}
               <label className="checkbox-group">
-                <input
-                  type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  required
-                />
+                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} required />
                 <span className="checkbox-label">
                   Saya menyetujui{" "}
                   <a href="#terms" className="text-purple">Syarat & Ketentuan</a>{" "}
@@ -246,45 +304,71 @@ const RegisterPage: React.FC = () => {
                 </span>
               </label>
 
-              {/* Button Submit */}
-              <button type="submit" className="btn-primary">
-                Daftar Akun Baru
+              <button type="submit" className="btn-primary" disabled={isLoading}>
+                {isLoading ? "Memproses..." : "Daftar Akun Baru"}
               </button>
             </form>
 
-            {/* Divider */}
             <div className="divider">
               <div className="divider-line"></div>
               <span className="divider-text">ATAU DAFTAR DENGAN</span>
               <div className="divider-line"></div>
             </div>
 
-            {/* Social Buttons with React Icons */}
             <div className="social-login-group">
               <button className="btn-social" type="button">
-                <FcGoogle />
-                Google
+                <FcGoogle /> Google
               </button>
               <button className="btn-social" type="button">
-                <FaApple />
-                Apple
+                <FaApple /> Apple
               </button>
             </div>
 
-            {/* Bottom Login Prompt */}
             <p className="login-prompt">
               Sudah punya akun? <a href="/login">Masuk Sekarang</a>
             </p>
-
-            {/* Footer Links */}
-            <div className="form-footer">
-              <a href="#terms">Syarat & Ketentuan</a>
-              <a href="#privacy">Kebijakan Privasi</a>
-              <a href="#help">Bantuan</a>
-            </div>
           </div>
         </div>
       </div>
+
+      {/* MODAL OTP */}
+      {showOtpModal && (
+        <div className="otp-modal-overlay">
+          <div className="otp-modal">
+            <div className="otp-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h2>Verifikasi Pendaftaran</h2>
+            <p>
+              Demi keamanan, masukkan 6 digit kode OTP yang telah dikirimkan ke alamat email anda <strong>({email.substring(0, 3)}***@gmail.com)</strong>
+            </p>
+
+            <div className="otp-inputs">
+              {[...Array(6)].map((_, i) => (
+                <input key={i} type="text" maxLength={1} value={otp[i] || ""} onChange={(e) => handleOtpChange(i, e.target.value)} disabled={isLoading} />
+              ))}
+            </div>
+
+            {timeLeft > 0 ? (
+              <p className="otp-timer">Kirim ulang kode dalam {formatTime(timeLeft)}</p>
+            ) : (
+              <p className="otp-timer" style={{ cursor: "pointer", color: "#7B3FE4", textDecoration: "underline" }} onClick={handleResendOtp}>
+                Kirim ulang kode OTP
+              </p>
+            )}
+
+            <button className="btn-verify-create" disabled={otp.length !== 6 || isLoading} onClick={handleVerifyAndRegister}>
+              {isLoading ? "Memverifikasi..." : "Verifikasi & Buat Akun"}
+            </button>
+
+            <button className="btn-back-register" onClick={() => setShowOtpModal(false)} disabled={isLoading}>
+              ← Kembali ke halaman Daftar
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -1,6 +1,6 @@
 import React from "react";
-import { FaUserCircle, FaHistory, FaHeart, FaUsers, FaArrowLeft } from "react-icons/fa";
-import "./TravelerSidebar.css"; // Kita pisahkan juga CSS-nya agar lebih rapi
+import { FaUserCircle, FaHistory, FaHeart, FaUsers } from "react-icons/fa";
+import "./TravelerSidebar.css"; 
 
 interface TravelerSidebarProps {
   activeMenu: "profil" | "history" | "wishlist" | "grup";
