@@ -1,25 +1,73 @@
-import React, { useState } from 'react';
-import { 
-  FaCalendarAlt, FaFileDownload, FaMoneyBillWave, 
-  FaMobileAlt, FaUserFriends, FaBullseye, FaCircle 
-} from 'react-icons/fa';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminTopbar from '../components/AdminTopbar';
-import StatistikChart from '../components/StatistikChart';
-import './AdminMonitoringPage.css';
+import React, { useState, useEffect } from "react";
+import { FaCalendarAlt, FaFileDownload, FaMoneyBillWave, FaMobileAlt, FaUserFriends } from "react-icons/fa";
+import AdminSidebar from "../components/AdminSidebar";
+import AdminTopbar from "../components/AdminTopbar";
+import StatistikChart from "../components/StatistikChart";
+import { getMonitoringStats } from "../services/adminService";
+import "./AdminMonitoringPage.css";
+
+// --- INTERFACE DIBERSIHKAN (Hanya yang digunakan) ---
+interface MonitoringData {
+  kpi: {
+    revenue: string;
+    totalBookings: number;
+    totalUsers: number;
+  };
+  topHotels: Array<{
+    id: string;
+    name: string;
+    location: string;
+    revenue: string;
+  }>;
+  crowdLevels: Array<{
+    id: string;
+    location: string;
+    percentage: number;
+    colorClass: string;
+  }>;
+}
 
 const AdminMonitoringPage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState('2023-10-01');
-  const [endDate, setEndDate] = useState('2023-10-31');
+  const [startDate, setStartDate] = useState("2023-10-01");
+  const [endDate, setEndDate] = useState("2023-10-31");
+
+  const [stats, setStats] = useState<MonitoringData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStats = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getMonitoringStats(startDate, endDate);
+      setStats(response.data);
+    } catch (error) {
+      console.error("Gagal mengambil data monitoring:", error);
+      // Fallback Data yang sudah disesuaikan
+      setStats({
+        kpi: { revenue: "Rp 0", totalBookings: 0, totalUsers: 0 },
+        topHotels: [],
+        crowdLevels: [],
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleApplyDateFilter = () => {
+    setShowDatePicker(false);
+    fetchStats();
+  };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'Pilih Tanggal';
+    if (!dateString) return "Pilih Tanggal";
     const d = new Date(dateString);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-    return `${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+    return `${d.getDate().toString().padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
   };
 
   const handleExportPDF = () => {
@@ -27,32 +75,24 @@ const AdminMonitoringPage: React.FC = () => {
   };
 
   return (
-// ... (lanjut ke kode return di bawahnya)
     <div className="admin-layout">
       <AdminSidebar activeMenu="monitoring" />
-      
+
       <main className="admin-main">
-        <AdminTopbar 
-          showSearch={true} 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
-          placeholder="Cari data analitik..." 
-        />
+        <AdminTopbar />
 
         <div className="monitoring-container">
-          
           <div className="monitoring-header">
             <div className="title-area">
               <h1>Monitoring Sistem</h1>
               <p>Data performa real-time seluruh ekosistem Pegi.</p>
             </div>
-           <div className="header-actions">
-              
+            <div className="header-actions">
               <div className="date-picker-container">
                 <button className="btn-outline-gray" onClick={() => setShowDatePicker(!showDatePicker)}>
                   <FaCalendarAlt className="text-gray" /> {formatDate(startDate)} - {formatDate(endDate)}
                 </button>
-                
+
                 {showDatePicker && (
                   <div className="date-picker-popup">
                     <div className="dp-field">
@@ -63,8 +103,8 @@ const AdminMonitoringPage: React.FC = () => {
                       <label>Tanggal Selesai</label>
                       <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                     </div>
-                    <button className="btn-primary dp-btn" onClick={() => setShowDatePicker(false)}>
-                      Terapkan
+                    <button className="btn-primary dp-btn" onClick={handleApplyDateFilter}>
+                      Terapkan Filter
                     </button>
                   </div>
                 )}
@@ -73,202 +113,110 @@ const AdminMonitoringPage: React.FC = () => {
               <button className="btn-primary" onClick={handleExportPDF}>
                 <FaFileDownload /> Export PDF
               </button>
-              
             </div>
           </div>
 
-          {/* ROW 1: KPI CARDS */}
-          <div className="kpi-grid">
-            <div className="kpi-card">
-              <div className="kpi-top">
-                <div className="kpi-icon bg-purple-light text-purple"><FaMoneyBillWave /></div>
+          {isLoading ? (
+            <div style={{ padding: "50px", textAlign: "center", color: "#8f9bba" }}>
+              <h3>Menarik data analitik dari server...</h3>
+            </div>
+          ) : (
+            <>
+              {/* ROW 1: KPI CARDS (Tetap) */}
+              <div className="kpi-grid" style={{ marginBottom: "20px" }}>
+                <div className="kpi-card">
+                  <div className="kpi-top">
+                    <div className="kpi-icon bg-purple-light text-purple">
+                      <FaMoneyBillWave />
+                    </div>
+                  </div>
+                  <p className="kpi-label">Pendapatan Terpilih</p>
+                  <h2 className="kpi-value">{stats?.kpi.revenue}</h2>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-top">
+                    <div className="kpi-icon bg-pink-light text-pink">
+                      <FaMobileAlt />
+                    </div>
+                  </div>
+                  <p className="kpi-label">Total Booking</p>
+                  <h2 className="kpi-value">{stats?.kpi.totalBookings.toLocaleString("id-ID")}</h2>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-top">
+                    <div className="kpi-icon bg-orange-light text-orange">
+                      <FaUserFriends />
+                    </div>
+                  </div>
+                  <p className="kpi-label">Total Pengguna Aktif</p>
+                  <h2 className="kpi-value">{stats?.kpi.totalUsers.toLocaleString("id-ID")}</h2>
+                </div>
               </div>
-              <p className="kpi-label">Pendapatan Bulan Ini</p>
-              <h2 className="kpi-value">Rp 4.2M</h2>
-            </div>
-            
-            <div className="kpi-card">
-              <div className="kpi-top">
-                <div className="kpi-icon bg-pink-light text-pink"><FaMobileAlt /></div>
-              </div>
-              <p className="kpi-label">Total Booking</p>
-              <h2 className="kpi-value">12,450</h2>
-            </div>
 
-            <div className="kpi-card">
-              <div className="kpi-top">
-                <div className="kpi-icon bg-orange-light text-orange"><FaUserFriends /></div>
-              </div>
-              <p className="kpi-label">Total Pengguna</p>
-              <h2 className="kpi-value">85.2k</h2>
-            </div>
-
-            <div className="kpi-card">
-              <div className="kpi-top">
-                <div className="kpi-icon bg-blue-light text-blue"><FaBullseye /></div>
-              </div>
-              <p className="kpi-label">Tingkat Konversi</p>
-              <h2 className="kpi-value">3.4%</h2>
-            </div>
-          </div>
-
-          <div className="chart-row-2">
-            
-            <div className="flex-2 chart-dashboard-wrapper">
-              <StatistikChart />
-            </div>
-
-            {/* Distribusi Pendapatan (Donut Chart CSS) */}
-            <div className="widget-card flex-1">
-              <h3 className="widget-title">Distribusi Pendapatan</h3>
-              <p className="widget-subtitle mb-20">Pembagian per kategori produk.</p>
-              
-              <div className="donut-container">
-                <div className="css-donut-chart">
-                  <div className="donut-inner">
-                    <span className="donut-val">100%</span>
-                    <span className="donut-lbl">TOTAL</span>
+              {/* ROW 2: CHART STATISTIK (Dibuat Full Width) */}
+              <div style={{ width: "100%", marginBottom: "20px" }}>
+                <div className="widget-card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div className="chart-dashboard-wrapper" style={{ width: "100%" }}>
+                    <StatistikChart />
                   </div>
                 </div>
               </div>
 
-              <div className="chart-legend">
-                <div className="legend-item">
-                  <span><FaCircle className="text-purple" /> Hotel</span>
-                  <span className="fw-bold">52%</span>
-                </div>
-                <div className="legend-item">
-                  <span><FaCircle className="text-blue" /> Transport</span>
-                  <span className="fw-bold">34%</span>
-                </div>
-                <div className="legend-item">
-                  <span><FaCircle className="text-yellow" /> Destinasi</span>
-                  <span className="fw-bold">14%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ROW 3: HEATMAP, RANKING, CROWD LEVEL */}
-          <div className="chart-row-3">
-            
-            {/* Heatmap Destinasi */}
-            <div className="widget-card">
-              <h3 className="widget-title mb-20">Heatmap Destinasi</h3>
-              <div className="css-heatmap">
-                <div className="heat-box" style={{opacity: 0.8}}></div>
-                <div className="heat-box" style={{opacity: 0.6}}></div>
-                <div className="heat-box" style={{opacity: 0.4}}></div>
-                <div className="heat-box" style={{opacity: 0.9}}></div>
-                <div className="heat-box" style={{opacity: 0.5}}></div>
-                <div className="heat-box" style={{opacity: 1.0}}></div>
-                <div className="heat-box" style={{opacity: 0.3}}></div>
-                <div className="heat-box" style={{opacity: 0.7}}></div>
-                <div className="heat-box" style={{opacity: 0.2}}></div>
-                <div className="heat-box" style={{opacity: 0.8}}></div>
-                <div className="heat-box" style={{opacity: 0.5}}></div>
-                <div className="heat-box" style={{opacity: 0.9}}></div>
-              </div>
-              <div className="heat-legend">
-                <span>Kurang Populer</span>
-                <span>Paling Populer</span>
-              </div>
-            </div>
-
-            {/* Ranking Hotel Teratas */}
-            <div className="widget-card">
-              <h3 className="widget-title mb-20">Ranking Hotel Teratas</h3>
-              <div className="ranking-list">
-                <div className="ranking-item">
-                  <span className="rank-num text-purple">01</span>
-                  <div className="rank-info">
-                    <h4>Alila Villas Uluwatu</h4><p>Bali, Indonesia</p>
-                  </div>
-                  <div className="rank-stats">
-                    <h4>Rp 842jt</h4>
+              {/* ROW 3: RANKING & CROWD LEVEL (Dibuat 2 Kolom Responsive) */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "20px" }}>
+                
+                {/* Ranking Hotel */}
+                <div className="widget-card">
+                  <h3 className="widget-title mb-20">Ranking Hotel Teratas</h3>
+                  <div className="ranking-list">
+                    {stats?.topHotels && stats.topHotels.length > 0 ? (
+                      stats.topHotels.map((hotel, index) => (
+                        <div className="ranking-item" key={hotel.id}>
+                          <span className={`rank-num ${index === 0 ? "text-purple" : "text-gray"}`}>{String(index + 1).padStart(2, "0")}</span>
+                          <div className="rank-info">
+                            <h4>{hotel.name}</h4>
+                            <p>{hotel.location}</p>
+                          </div>
+                          <div className="rank-stats">
+                            <h4>{hotel.revenue}</h4>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray sm-text" style={{ textAlign: "center" }}>
+                        Belum ada transaksi hotel.
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="ranking-item">
-                  <span className="rank-num text-gray">02</span>
-                  <div className="rank-info">
-                    <h4>Amanjiwo Borobudur</h4><p>Magelang, Indonesia</p>
+
+                {/* Statistik Crowd Level */}
+                <div className="widget-card">
+                  <h3 className="widget-title mb-20">Statistik Tingkat Keramaian</h3>
+                  <div className="crowd-stats-list">
+                    {stats?.crowdLevels && stats.crowdLevels.length > 0 ? (
+                      stats.crowdLevels.map((crowd) => (
+                        <div className="crowd-item" key={crowd.id}>
+                          <div className="crowd-header">
+                            <span>{crowd.location}</span>
+                            <span className={`text-${crowd.colorClass.split("-")[1]} fw-bold`}>{crowd.percentage}%</span>
+                          </div>
+                          <div className="progress-bg">
+                            <div className={`progress-fill ${crowd.colorClass}`} style={{ width: `${crowd.percentage}%` }}></div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray sm-text" style={{ textAlign: "center" }}>
+                        Tidak ada data keramaian.
+                      </p>
+                    )}
                   </div>
-                  <div className="rank-stats">
-                    <h4>Rp 650jt</h4>
-                  </div>
                 </div>
-                <div className="ranking-item">
-                  <span className="rank-num text-gray">03</span>
-                  <div className="rank-info">
-                    <h4>The Ritz-Carlton Mega</h4><p>Jakarta, Indonesia</p>
-                  </div>
-                  <div className="rank-stats">
-                    <h4>Rp 520jt</h4>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Statistik Crowd Level */}
-            <div className="widget-card">
-              <h3 className="widget-title mb-20">Statistik Crowd Level</h3>
-              <div className="crowd-stats-list">
-                <div className="crowd-item">
-                  <div className="crowd-header"><span>Bali (Ocean Front)</span><span className="text-purple fw-bold">85%</span></div>
-                  <div className="progress-bg"><div className="progress-fill bg-purple" style={{width: '85%'}}></div></div>
-                </div>
-                <div className="crowd-item">
-                  <div className="crowd-header"><span>Yogyakarta (Borobudur)</span><span className="text-yellow fw-bold">62%</span></div>
-                  <div className="progress-bg"><div className="progress-fill bg-yellow" style={{width: '62%'}}></div></div>
-                </div>
-                <div className="crowd-item">
-                  <div className="crowd-header"><span>Lombok (Mandalika)</span><span className="text-blue-light fw-bold">45%</span></div>
-                  <div className="progress-bg"><div className="progress-fill bg-blue-light" style={{width: '45%'}}></div></div>
-                </div>
               </div>
-            </div>
-
-          </div>
-
-          {/* ROW 4: WILAYAH TERAKTIF (MAP PLACEHOLDER) */}
-          <div className="widget-card">
-            <div className="map-header">
-              <div>
-                <h3 className="widget-title">Wilayah Teraktif</h3>
-                <p className="widget-subtitle">Distribusi volume booking di seluruh wilayah Indonesia.</p>
-              </div>
-              <div className="map-legend">
-                <span><FaCircle className="text-purple" /> {'>'} 1,000 Booking</span>
-                <span><FaCircle className="text-purple-light" /> {'<'} 500 Booking</span>
-              </div>
-            </div>
-            
-            <div className="map-container">
-              {/* Gambar peta dummy dari web */}
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Indonesia_location_map.svg/1024px-Indonesia_location_map.svg.png" alt="Peta Indonesia" className="map-img" />
-              
-              {/* Titik Lokasi Dummy */}
-              <div className="map-pin" style={{top: '55%', left: '30%'}}>
-                <div className="pin-dot"></div>
-                <div className="pin-label">Jakarta: 4,203 Bookings</div>
-              </div>
-              <div className="map-pin" style={{top: '75%', left: '45%'}}>
-                <div className="pin-dot"></div>
-                <div className="pin-label">Bali: 8,145 Bookings</div>
-              </div>
-
-              {/* Analisis Regional Box */}
-              <div className="regional-analysis-box">
-                <h4>ANALISIS REGIONAL</h4>
-                <div className="ra-stats">
-                  <div><h2>64%</h2><p>JAWA & BALI</p></div>
-                  <div><h2>22%</h2><p>SUMATERA</p></div>
-                  <div><h2>14%</h2><p>LAINNYA</p></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+            </>
+          )}
         </div>
       </main>
     </div>

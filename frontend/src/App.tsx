@@ -15,6 +15,8 @@ import TransportSearchPage from "./pages/TransportSearchPage";
 import ProfilePage from "./pages/ProfilePage";
 import BookingHistoryPage from "./pages/BookingHistoryPage";
 import WishlistPage from "./pages/WishlistPage";
+import GrupList from "./pages/GrupList";
+import GrupChat from "./pages/GroupChat";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserPage from "./pages/AdminUserPage";
@@ -29,6 +31,7 @@ import TravelPartnerPage from "./pages/TravelPartnerPage";
 import TransportDetailPage from "./pages/TransportDetailPage";
 import PaymentPage from "./pages/PaymentPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import AdminPaymentPage from "./pages/AdminPaymentPage";
 
 function App() {
   const path = window.location.pathname.toLowerCase();
@@ -55,6 +58,9 @@ function App() {
   if (path === "/profile") return <ProfilePage />;
   if (path === "/history") return <BookingHistoryPage />;
   if (path === "/wishlist") return <WishlistPage />;
+  if (path === "/grup") return <GrupList />;
+  if (path === "/grup/chat") return <GrupChat/>
+
 
   if (path === "/admin") return <AdminDashboard />;
   if (path === "/admin/users") return <AdminUserPage />;
@@ -64,6 +70,7 @@ function App() {
   if (path === "/admin/transport") return <AdminTransportPage />;
   if (path === "/admin/groups") return <AdminGroupPage />;
   if (path === "/admin/monitoring") return <AdminMonitoringPage />;
+  if (path === "/admin/payments") return <AdminPaymentPage />;
 
   return <HomePage />;
 }

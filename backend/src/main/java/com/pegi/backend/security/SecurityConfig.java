@@ -23,43 +23,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Matikan CSRF karena kita pakai JWT (stateless)
             .csrf(csrf -> csrf.disable())
-
-            // Atur endpoint mana yang publik, mana yang butuh login
             .authorizeHttpRequests(auth -> auth
                 // Endpoint publik — tidak perlu token
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
-                    "/api/reviews/**"     // Siapapun bisa lihat review hotel
+                    "/api/auth/verify-otp",   // tambahan untuk 2FA
+                    "/api/auth/resend-otp",   // tambahan untuk 2FA
+                    "/api/reviews/**"
                 ).permitAll()
-
-                // Khusus admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                // Semua endpoint lain butuh login
                 .anyRequest().authenticated()
             )
-
-            // Gunakan stateless session (tidak pakai session cookie)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
-            // Tambahkan JWT filter sebelum filter login biasa
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Encoder untuk hash password (BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AuthenticationManager dipakai di AuthService saat proses login
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
