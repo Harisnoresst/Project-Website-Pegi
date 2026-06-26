@@ -1,4 +1,5 @@
-const dummyHotelData = [
+import type { HotelType } from "../types/HotelType";
+const dummyHotelData: HotelType[] = [
   {
     id: 1,
     name: 'Ubud Hanging Gardens',
@@ -386,8 +387,8 @@ rooms: [
   }
 ];
 
-export const getHotels = async () => {
-  return new Promise((resolve) => {
+export const getHotels = async (): Promise<HotelType[]> => {
+  return new Promise<HotelType[]>((resolve) => {
     setTimeout(() => {
       resolve(dummyHotelData);
     }, 800);
@@ -396,14 +397,10 @@ export const getHotels = async () => {
 
 export const getHotelById = async (
   id: number
-) => {
-  return new Promise((resolve) => {
+): Promise<HotelType | undefined> => {
+  return new Promise<HotelType | undefined>((resolve) => {
     setTimeout(() => {
-      const hotel = dummyHotelData.find(
-        (hotel) => hotel.id === id
-      );
-
-      resolve(hotel);
+      resolve(dummyHotelData.find(hotel => hotel.id === id));
     }, 500);
   });
 };

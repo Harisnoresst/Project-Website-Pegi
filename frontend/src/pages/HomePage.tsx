@@ -361,6 +361,8 @@ const HomePage: React.FC = () => {
                     type="text"
                     className="search-input"
                     placeholder="Berangkat dari mana?"
+                    value={transportFrom}
+                    onChange={(e) => setTransportFrom(e.target.value)}
                   />
                 </div>
               </div>
@@ -373,6 +375,8 @@ const HomePage: React.FC = () => {
                     type="text"
                     className="search-input"
                     placeholder="Pergi ke mana?"
+                    value={transportTo}
+                    onChange={(e) => setTransportTo(e.target.value)}
                   />
                 </div>
               </div>
@@ -382,13 +386,10 @@ const HomePage: React.FC = () => {
                 <div className="search-input-wrapper">
                   <MdDateRange className="search-icon" />
                   <input
-                    type="text"
+                    type="date"
                     className="search-input"
-                    placeholder="Kapan berangkat?"
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) =>
-                      (e.target.type = e.target.value ? "date" : "text")
-                    }
+                    value={transportDate}
+                    onChange={(e) => setTransportDate(e.target.value)}
                   />
                 </div>
               </div>
