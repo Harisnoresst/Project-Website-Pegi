@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdStar,
@@ -28,6 +29,9 @@ const HotelSearchPage: React.FC = () => {
   // State untuk menyimpan data dari API dan status loading
   const [hotels, setHotels] = useState<HotelType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const params = new URLSearchParams(window.location.search);
+
+  const locationParam = params.get("location") || "";
 
   // STATE PAGINASI
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -37,9 +41,15 @@ const HotelSearchPage: React.FC = () => {
   useEffect(() => {
     const fetchHotelData = async () => {
       setIsLoading(true);
+
       try {
         const data = await getHotels();
+
         setHotels(data as HotelType[]);
+
+        if (locationParam) {
+          setSearchTerm(locationParam);
+        }
       } catch (error) {
         console.error("Gagal mengambil data hotel", error);
       } finally {
@@ -48,7 +58,7 @@ const HotelSearchPage: React.FC = () => {
     };
 
     fetchHotelData();
-  }, []);
+  }, [locationParam]);
 
   const toggleFavorite = (id: number) => {
     if (favorites.includes(id)) {
@@ -79,16 +89,15 @@ const HotelSearchPage: React.FC = () => {
   };
   const filteredHotels = hotels
     .filter((hotel) => {
-      const matchSearch = hotel.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const matchSearch =
+        hotel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel.location.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchAmenities =
         selectedAmenities.length === 0 ||
         selectedAmenities.every((amenity) => hotel.amenities.includes(amenity));
 
       const min = minPrice === "" ? 0 : Number(minPrice);
-
       const max = maxPrice === "" ? Infinity : Number(maxPrice);
 
       const matchPrice = hotel.priceValue >= min && hotel.priceValue <= max;
@@ -117,7 +126,7 @@ const HotelSearchPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="hotel-search-wrapper">
         <div className="hotel-main-container">
@@ -240,7 +249,11 @@ const HotelSearchPage: React.FC = () => {
             <div className="results-header-block">
               <div className="results-title-group">
                 <h4>Hasil Pencarian</h4>
-                <h1>Luxury Stays di Indonesia</h1>
+                <h1>
+                  {searchTerm
+                    ? `Hotel di ${searchTerm}`
+                    : "Luxury Stays di Indonesia"}
+                </h1>
               </div>
               <div className="sort-group">
                 <span>Urutkan:</span>
@@ -388,6 +401,7 @@ const HotelSearchPage: React.FC = () => {
           </main>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

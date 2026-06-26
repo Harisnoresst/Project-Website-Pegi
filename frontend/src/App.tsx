@@ -26,6 +26,11 @@ import AdminPromoPage from "./pages/AdminPromoPage";
 import AdminTransportPage from "./pages/AdminTransportPage";
 import AdminGroupPage from "./pages/AdminGroupPage";
 import AdminMonitoringPage from "./pages/AdminMonitoringPage";
+import HelpCenterPage from "./pages/HelpCenterPage";
+import TravelPartnerPage from "./pages/TravelPartnerPage";
+import TransportDetailPage from "./pages/TransportDetailPage";
+import PaymentPage from "./pages/PaymentPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import AdminPaymentPage from "./pages/AdminPaymentPage";
 
 function App() {
@@ -39,8 +44,16 @@ function App() {
 
   if (path === "/destination-search") return <DestinationSearchPage />;
   if (path === "/destination-detail") return <DestinationDetailPage />;
+  if (path === "/travel-partner") return <TravelPartnerPage />;
 
   if (path === "/transport-search") return <TransportSearchPage />;
+  if (path === "/transport-detail") return <TransportDetailPage />;
+
+  if (path === "/payment-page") return <PaymentPage />;
+  if (path === "/payment-success") return <PaymentSuccessPage />;
+  
+
+  if (path === "/help-center") return <HelpCenterPage />;
 
   if (path === "/profile") return <ProfilePage />;
   if (path === "/history") return <BookingHistoryPage />;

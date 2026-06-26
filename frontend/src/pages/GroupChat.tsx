@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaSearch, FaEllipsisV, FaCarSide, FaStar, FaImage, FaPaperPlane } from "react-icons/fa";
-import NavbarGuest from "../components/NavbarGuest"; 
+import {
+  FaSearch,
+  FaEllipsisV,
+  FaCarSide,
+  FaStar,
+  FaImage,
+  FaPaperPlane,
+} from "react-icons/fa";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import "./GroupChat.css";
 import TravelerSidebar from "../components/TravelerSidebar";
 
@@ -34,7 +42,8 @@ const GroupChat: React.FC = () => {
       senderName: "Budi",
       senderAvatar: "https://i.pravatar.cc/150?img=11",
       type: "text",
-      content: "Gimana teman-teman, villa di Seminyak sudah oke semua? Aku baru cek transportasinya, sewa mobil di sana lagi banyak promo nih.",
+      content:
+        "Gimana teman-teman, villa di Seminyak sudah oke semua? Aku baru cek transportasinya, sewa mobil di sana lagi banyak promo nih.",
       time: "09:15",
     },
     {
@@ -43,15 +52,17 @@ const GroupChat: React.FC = () => {
       senderName: "Siska",
       senderAvatar: "https://i.pravatar.cc/150?img=5",
       type: "text",
-      content: "Setuju! Villa yang kemarin kita bahas lokasinya strategis banget ke pantai. Andi gimana? Sudah cek tiket keretanya belum?",
+      content:
+        "Setuju! Villa yang kemarin kita bahas lokasinya strategis banget ke pantai. Andi gimana? Sudah cek tiket keretanya belum?",
       time: "09:20",
     },
     {
       id: "msg-4",
-      senderId: "me", 
+      senderId: "me",
       senderName: "Anda",
       type: "text",
-      content: "Tenang Sis, tiket kereta api eksekutif sudah aman semua. Tinggal bayar pelunasan aja nanti pas split bill.",
+      content:
+        "Tenang Sis, tiket kereta api eksekutif sudah aman semua. Tinggal bayar pelunasan aja nanti pas split bill.",
       time: "09:25",
     },
   ]);
@@ -72,7 +83,10 @@ const GroupChat: React.FC = () => {
       senderName: "Anda",
       type: "text",
       content: inputText,
-      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     setMessages([...messages, newMessage]);
@@ -82,7 +96,7 @@ const GroupChat: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const imageUrl = URL.createObjectURL(file); 
+      const imageUrl = URL.createObjectURL(file);
 
       const imageMessage: Message = {
         id: Date.now().toString(),
@@ -90,7 +104,10 @@ const GroupChat: React.FC = () => {
         senderName: "Anda",
         type: "image",
         content: imageUrl,
-        time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+        time: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
 
       setMessages([...messages, imageMessage]);
@@ -99,117 +116,174 @@ const GroupChat: React.FC = () => {
   };
 
   return (
-    <div className="traveler-page">
-      <NavbarGuest />
+    <>
+      <Navbar />
+      <div className="traveler-page">
+        <div className="traveler-layout">
+          <TravelerSidebar activeMenu="grup" />
 
-      <div className="traveler-layout">
-      <TravelerSidebar activeMenu="grup" />
-
-        {/* AREA CHAT UTAMA */}
-        <main className="chat-main">
-          {/* 1. CHAT HEADER */}
-          <div className="chat-header">
-            <div className="chat-header-info">
-              <div className="chat-avatar-wrapper">
-                <FaCarSide className="chat-group-icon" />
-              </div>
-              <div>
-                <h2>Liburan Seru ke Bali</h2>
-                <span className="badge-active-now">
-                  <span className="dot-blink"></span> Aktif Sekarang
-                </span>
-              </div>
-            </div>
-            <div className="chat-header-actions">
-              <button className="btn-icon-transparent">
-                <FaSearch />
-              </button>
-              <button className="btn-icon-transparent">
-                <FaEllipsisV />
-              </button>
-            </div>
-          </div>
-
-          {/* 2. TAB NAVIGASI */}
-          <div className="chat-tabs">
-            <button className={`tab-btn ${activeTab === "obrolan" ? "active" : ""}`} onClick={() => setActiveTab("obrolan")}>
-              Obrolan
-            </button>
-            <button className={`tab-btn ${activeTab === "itinerary" ? "active" : ""}`} onClick={() => setActiveTab("itinerary")}>
-              Itinerary & Anggota
-            </button>
-            <button className={`tab-btn ${activeTab === "splitbill" ? "active" : ""}`} onClick={() => setActiveTab("splitbill")}>
-              Split Bill
-            </button>
-          </div>
-
-          {/* 3. BODY CHAT */}
-          <div className="chat-body" ref={chatBodyRef}>
-            <div className="chat-date-separator">
-              <span>Hari ini</span>
-            </div>
-
-            {messages.map((msg) => {
-              const isMe = msg.senderId === "me";
-
-              return (
-                <div key={msg.id} className={`chat-bubble-wrapper ${isMe ? "sent" : "received"}`}>
-                  {!isMe && <img src={msg.senderAvatar} alt={msg.senderName} className="chat-user-avatar" />}
-
-                  <div className="chat-message-content">
-                    {!isMe && <span className="chat-sender-name">{msg.senderName}</span>}
-
-                    {msg.type === "text" && (
-                      <div className={`chat-bubble ${isMe ? "purple" : "white"}`}>
-                        <p>{msg.content}</p>
-                      </div>
-                    )}
-
-                    {msg.type === "image" && (
-                      <div className="chat-bubble-image">
-                        <img src={msg.content} alt="Uploaded" className="uploaded-image" />
-                      </div>
-                    )}
-
-                    {msg.type === "card" && msg.cardData && (
-                      <div className="chat-product-card-no-img">
-                        <div className="card-info-box">
-                          <h4 className="card-title-text">{msg.cardData.title}</h4>
-                          <div className="card-price-row">
-                            <span className="fw-bold text-purple">{msg.cardData.price}</span>
-                            <span className="rating"><FaStar className="text-yellow" /> {msg.cardData.rating}</span>
-                          </div>
-                          <button className="btn-detail-product">Lihat Detail Villa</button>
-                        </div>
-                      </div>
-                    )}
-
-                    <span className="chat-timestamp">{msg.time}</span>
-                  </div>
+          {/* AREA CHAT UTAMA */}
+          <main className="chat-main">
+            {/* 1. CHAT HEADER */}
+            <div className="chat-header">
+              <div className="chat-header-info">
+                <div className="chat-avatar-wrapper">
+                  <FaCarSide className="chat-group-icon" />
                 </div>
-              );
-            })}
-          </div>
+                <div>
+                  <h2>Liburan Seru ke Bali</h2>
+                  <span className="badge-active-now">
+                    <span className="dot-blink"></span> Aktif Sekarang
+                  </span>
+                </div>
+              </div>
+              <div className="chat-header-actions">
+                <button className="btn-icon-transparent">
+                  <FaSearch />
+                </button>
+                <button className="btn-icon-transparent">
+                  <FaEllipsisV />
+                </button>
+              </div>
+            </div>
 
-          <div className="chat-footer">
-            {/* Input File Tersembunyi */}
-            <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleImageUpload} />
+            {/* 2. TAB NAVIGASI */}
+            <div className="chat-tabs">
+              <button
+                className={`tab-btn ${activeTab === "obrolan" ? "active" : ""}`}
+                onClick={() => setActiveTab("obrolan")}
+              >
+                Obrolan
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "itinerary" ? "active" : ""}`}
+                onClick={() => setActiveTab("itinerary")}
+              >
+                Itinerary & Anggota
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "splitbill" ? "active" : ""}`}
+                onClick={() => setActiveTab("splitbill")}
+              >
+                Split Bill
+              </button>
+            </div>
 
-            <button className="btn-action-icon" onClick={() => fileInputRef.current?.click()}>
-              <FaImage />
-            </button>
+            {/* 3. BODY CHAT */}
+            <div className="chat-body" ref={chatBodyRef}>
+              <div className="chat-date-separator">
+                <span>Hari ini</span>
+              </div>
 
-            <form className="chat-input-wrapper" onSubmit={handleSendMessage}>
-              <input type="text" placeholder="Tulis pesan untuk grup..." value={inputText} onChange={(e) => setInputText(e.target.value)} />
-            </form>
+              {messages.map((msg) => {
+                const isMe = msg.senderId === "me";
 
-            <button className="btn-send-message" onClick={handleSendMessage} disabled={!inputText.trim()}>
-              Kirim <FaPaperPlane />
-            </button>
-          </div>
-        </main>
+                return (
+                  <div
+                    key={msg.id}
+                    className={`chat-bubble-wrapper ${isMe ? "sent" : "received"}`}
+                  >
+                    {!isMe && (
+                      <img
+                        src={msg.senderAvatar}
+                        alt={msg.senderName}
+                        className="chat-user-avatar"
+                      />
+                    )}
+
+                    <div className="chat-message-content">
+                      {!isMe && (
+                        <span className="chat-sender-name">
+                          {msg.senderName}
+                        </span>
+                      )}
+
+                      {msg.type === "text" && (
+                        <div
+                          className={`chat-bubble ${isMe ? "purple" : "white"}`}
+                        >
+                          <p>{msg.content}</p>
+                        </div>
+                      )}
+
+                      {msg.type === "image" && (
+                        <div className="chat-bubble-image">
+                          <img
+                            src={msg.content}
+                            alt="Uploaded"
+                            className="uploaded-image"
+                          />
+                        </div>
+                      )}
+
+                      {msg.type === "card" && msg.cardData && (
+                        <div className="chat-product-card-no-img">
+                          <div className="card-info-box">
+                            <h4 className="card-title-text">
+                              {msg.cardData.title}
+                            </h4>
+                            <div className="card-price-row">
+                              <span className="fw-bold text-purple">
+                                {msg.cardData.price}
+                              </span>
+                              <span className="rating">
+                                <FaStar className="text-yellow" />{" "}
+                                {msg.cardData.rating}
+                              </span>
+                            </div>
+                            <button className="btn-detail-product">
+                              Lihat Detail Villa
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <span className="chat-timestamp">{msg.time}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="chat-footer">
+              {/* Input File Tersembunyi */}
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
+              />
+
+              <button
+                className="btn-action-icon"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FaImage />
+              </button>
+
+              <form className="chat-input-wrapper" onSubmit={handleSendMessage}>
+                <input
+                  type="text"
+                  placeholder="Tulis pesan untuk grup..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                />
+              </form>
+
+              <button
+                className="btn-send-message"
+                onClick={handleSendMessage}
+                disabled={!inputText.trim()}
+              >
+                Kirim <FaPaperPlane />
+              </button>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

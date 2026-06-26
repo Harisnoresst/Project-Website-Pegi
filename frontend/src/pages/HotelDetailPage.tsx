@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdWifi,
@@ -80,7 +81,7 @@ const HotelDetailPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="hotel-detail-page">
         <div className="hotel-detail-container">
@@ -256,6 +257,7 @@ const HotelDetailPage: React.FC = () => {
           </section>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

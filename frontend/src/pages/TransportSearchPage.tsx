@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdDirectionsBus,
   MdTrain,
@@ -127,7 +128,7 @@ const TransportSearchPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
       <div className="transport-search-page">
         <div className="transport-search-header">
           <div className="search-summary">
@@ -403,6 +404,7 @@ const TransportSearchPage: React.FC = () => {
           </main>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

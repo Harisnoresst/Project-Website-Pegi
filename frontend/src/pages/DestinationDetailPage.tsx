@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdStar,
@@ -68,7 +69,7 @@ const DestinationDetailPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="destination-detail-page">
         {/* HERO */}
@@ -240,7 +241,15 @@ const DestinationDetailPage: React.FC = () => {
                 <p>Temukan teman perjalanan baru dan bagikan pengalamanmu.</p>
               </div>
 
-              <button className="partner-btn">Cari Travel Partner</button>
+              <button
+                onClick={() =>
+                  (window.location.href = `/travel-partner?destination=${encodeURIComponent(
+                    destination.name,
+                  )}`)
+                }
+              >
+                Cari Travel Partner
+              </button>
             </div>
 
             <div className="traveler-list">
@@ -259,6 +268,7 @@ const DestinationDetailPage: React.FC = () => {
           </section>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

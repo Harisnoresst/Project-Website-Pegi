@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import "./RegisterPage.css";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
@@ -131,7 +132,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="register-wrapper">
         <div className="register-left">
@@ -289,6 +290,7 @@ const RegisterPage: React.FC = () => {
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 };

@@ -1,9 +1,9 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import "./LoginPage.css";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="login-wrapper">
         {/* SEBELAH KIRI - Hero Banner (Disembunyikan di Mobile) */}
@@ -219,6 +219,7 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 };

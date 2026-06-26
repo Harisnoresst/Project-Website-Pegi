@@ -1,0 +1,283 @@
+.payment-page {
+    width: min(1280px, 100%);
+    margin: 40px auto;
+    padding: 0 20px 60px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    box-sizing: border-box;
+}
+
+.payment-left {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.payment-right {
+    position: relative;
+}
+
+
+/* ================= CARD ================= */
+
+.payment-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #ECECEC;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
+    padding: 28px;
+}
+
+.payment-card h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #111827;
+}
+
+.payment-card h3 {
+    margin: 0;
+    font-size: 22px;
+    color: #111827;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.card-title svg {
+    color: #7B3FE4;
+}
+
+
+/* ================= BUTTON ================= */
+
+.primary-btn {
+    width: 100%;
+    height: 54px;
+    border: none;
+    border-radius: 12px;
+    background: #7B3FE4;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.primary-btn:hover {
+    background: #6930C3;
+}
+
+.primary-btn:disabled {
+    background: #D1D5DB;
+    cursor: not-allowed;
+}
+
+
+/* ================= INPUT ================= */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.form-control {
+    height: 48px;
+    border: 1px solid #D6D6D6;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 14px;
+    transition: .2s;
+    outline: none;
+}
+
+.form-control:focus {
+    border-color: #7B3FE4;
+    box-shadow: 0 0 0 3px rgba(123, 63, 228, .15);
+}
+
+
+/* ================= CONTACT ================= */
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper .form-control {
+    padding-left: 46px;
+}
+
+.phone-group {
+    margin-top: 4px;
+}
+
+.phone-input {
+    display: flex;
+    gap: 12px;
+}
+
+.country-code {
+    min-width: 90px;
+    height: 48px;
+    border: 1px solid #D6D6D6;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    background: #F8F9FA;
+    font-weight: 600;
+}
+
+.phone-input input {
+    flex: 1;
+}
+
+@media(max-width:768px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+    .phone-input {
+        flex-direction: column;
+    }
+    .country-code {
+        width: 100%;
+    }
+}
+
+
+/* ================= TRAVELER ================= */
+
+.traveler-card {
+    margin-bottom: 24px;
+    padding: 20px;
+    border: 1px solid #ECECEC;
+    border-radius: 14px;
+    background: #FAFAFA;
+}
+
+.traveler-card h4 {
+    margin: 0 0 18px;
+    font-size: 16px;
+    color: #111827;
+}
+
+.add-traveler-btn {
+    margin-top: 10px;
+    border: none;
+    background: none;
+    color: #7B3FE4;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.add-traveler-btn:hover {
+    color: #6930C3;
+}
+
+.traveler-card h4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.seat-number {
+    background: #F3E8FF;
+    color: #7B3FE4;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.payment-method-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 2px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: .25s;
+    background: white;
+}
+
+.payment-method:hover {
+    border-color: #7B3FE4;
+}
+
+.payment-method.active {
+    border-color: #7B3FE4;
+    background: #F5F0FF;
+}
+
+.payment-method input {
+    accent-color: #7B3FE4;
+    width: 18px;
+    height: 18px;
+}
+
+.payment-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: #F3E8FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+}
+
+.payment-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-info strong {
+    font-size: 15px;
+    color: #111827;
+}
+
+.payment-info span {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:992px) {
+    .payment-page {
+        grid-template-columns: 1fr;
+    }
+    .payment-right {
+        order: -1;
+    }
+}

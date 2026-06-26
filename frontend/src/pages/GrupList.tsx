@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { FaStar, FaPlus, FaSearch, FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import "./GrupList.css";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import TravelerSidebar from "../components/TravelerSidebar"; // 1. IMPORT SIDEBAR
 
 interface TravelGroup {
@@ -94,8 +95,9 @@ const GrupList: React.FC = () => {
     });
 
   return (
+    <><Navbar />
+    
     <div className="page-wrapper">
-      <NavbarGuest />
       <div className="traveler-layout">
         <TravelerSidebar activeMenu="grup" />
 
@@ -249,6 +251,8 @@ const GrupList: React.FC = () => {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 };
 
