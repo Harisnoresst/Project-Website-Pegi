@@ -4,7 +4,7 @@ import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import "./AdminUserPage.css";
 
-// 1. Import Service API untuk Pengguna
+// Import Service API untuk Pengguna yang terhubung ke Database
 import { getAllUsers, updateUser } from "../services/adminService";
 
 // Tipe Data Pengguna
@@ -12,7 +12,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "PELANGGAN" | "TRAVEL AGENT" | "ADMIN";
+  role: "PELANGGAN" | "ADMIN";
   status: "Aktif" | "Nonaktif";
   date: string;
   avatarUrl?: string;
@@ -24,15 +24,14 @@ const AdminUserPage: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState("Semua Peran");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
 
-  // 2. State Data dari Database
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- STATE UNTUK PAGINATION (BARU) ---
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Batasan 5 data per halaman
+  const itemsPerPage = 5;
 
-  // 3. Fungsi untuk menarik data dari Database
+  // Fungsi untuk menarik data dari Database
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
@@ -49,7 +48,7 @@ const AdminUserPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // 4. Perbarui fungsi Ubah Status
+  // Fungsi Ubah Status
   const handleToggleStatus = async (userId: string, currentStatus: string) => {
     const isDeactivating = currentStatus === "Aktif";
     const confirmMsg = isDeactivating ? "Apakah Anda yakin ingin MENONAKTIFKAN pengguna ini? Mereka tidak akan bisa login." : "Apakah Anda yakin ingin MENGAKTIFKAN KEMBALI pengguna ini?";
@@ -65,6 +64,23 @@ const AdminUserPage: React.FC = () => {
     }
   };
 
+  // --- FUNGSI BARU: Mengubah Role menjadi Admin ---
+  const handleMakeAdmin = async (userId: string, userName: string) => {
+    const confirmMsg = `Apakah Anda yakin ingin mengubah ${userName} menjadi ADMIN? Saat login, pengguna ini akan langsung diarahkan ke Dashboard Admin.`;
+
+    if (window.confirm(confirmMsg)) {
+      try {
+        // Terhubung ke API/Database untuk update role
+        await updateUser(userId, { role: "ADMIN" });
+        alert(`${userName} berhasil dijadikan Admin!`);
+        fetchUsers(); // Refresh data tabel
+      } catch (error) {
+        console.error("Gagal mengubah role:", error);
+        alert("Terjadi kesalahan pada database saat mengubah peran pengguna.");
+      }
+    }
+  };
+
   // Filter Data
   const filteredUsers = users.filter((user) => {
     const matchSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || user.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -74,15 +90,11 @@ const AdminUserPage: React.FC = () => {
     return matchSearch && matchRole && matchStatus;
   });
 
-  // --- LOGIKA PAGINATION (BARU) ---
-  // Reset halaman ke 1 jika Admin mengetik pencarian atau mengubah filter
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, roleFilter, statusFilter]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
-  // Memotong data yang tampil sesuai halaman saat ini
   const currentTableData = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleResetFilter = () => {
@@ -91,7 +103,6 @@ const AdminUserPage: React.FC = () => {
     setStatusFilter("Semua Status");
   };
 
-  // Hitung statistik dinamis
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.status === "Aktif").length;
   const adminUsers = users.filter((u) => u.role === "ADMIN").length;
@@ -156,7 +167,6 @@ const AdminUserPage: React.FC = () => {
               <select className="filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="Semua Peran">Semua Peran</option>
                 <option value="PELANGGAN">Pelanggan</option>
-                <option value="TRAVEL AGENT">Travel Agent</option>
                 <option value="ADMIN">Admin</option>
               </select>
               <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -187,7 +197,7 @@ const AdminUserPage: React.FC = () => {
                   {isLoading ? (
                     <tr>
                       <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "#888" }}>
-                        Memuat data pengguna dari database...
+                        Memuat data dari database...
                       </td>
                     </tr>
                   ) : currentTableData.length > 0 ? (
@@ -218,26 +228,35 @@ const AdminUserPage: React.FC = () => {
                         </td>
                         <td className="text-gray">{user.date}</td>
 
-                        {/* --- TOMBOL AKSI --- */}
+                        {/* --- TOMBOL AKSI DENGAN TAMBAHAN JADIKAN ADMIN --- */}
                         <td>
-                          {user.status === "Aktif" && (
-                            <button className="btn-action btn-danger" onClick={() => handleToggleStatus(user.id, user.status)}>
-                              <FaBan /> Nonaktifkan
-                            </button>
-                          )}
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            {user.status === "Aktif" && (
+                              <button className="btn-action btn-danger" onClick={() => handleToggleStatus(user.id, user.status)}>
+                                <FaBan /> Nonaktifkan
+                              </button>
+                            )}
 
-                          {user.status === "Nonaktif" && (
-                            <button className="btn-action btn-success" onClick={() => handleToggleStatus(user.id, user.status)}>
-                              <FaCheckCircle /> Aktifkan
-                            </button>
-                          )}
+                            {user.status === "Nonaktif" && (
+                              <button className="btn-action btn-success" onClick={() => handleToggleStatus(user.id, user.status)}>
+                                <FaCheckCircle /> Aktifkan
+                              </button>
+                            )}
+
+                            {/* Tombol Jadikan Admin (Hanya tampil jika user belum menjadi Admin) */}
+                            {user.role !== "ADMIN" && (
+                              <button className="btn-action" style={{ backgroundColor: "#4f46e5", color: "white", border: "none" }} onClick={() => handleMakeAdmin(user.id, user.name)}>
+                                <FaUserShield /> Jadikan Admin
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "#888" }}>
-                        Pencarian "{searchQuery}" tidak ditemukan.
+                        Tidak ditemukan.
                       </td>
                     </tr>
                   )}
@@ -245,34 +264,20 @@ const AdminUserPage: React.FC = () => {
               </table>
             </div>
 
-            {/* --- PAGINATION FOOTER DINAMIS --- */}
             <div className="pagination-footer">
               <span className="text-gray">
-                Menampilkan halaman {currentPage} dari {totalPages || 1} ({filteredUsers.length} total pengguna)
+                Menampilkan halaman {currentPage} dari {totalPages || 1}
               </span>
-
               <div className="pagination-controls">
-                <button
-                  className="page-btn text-gray"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  style={{ cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
-                >
+                <button className="page-btn text-gray" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
                   {"<"}
                 </button>
-
                 {[...Array(totalPages)].map((_, index) => (
                   <button key={index + 1} className={`page-btn ${currentPage === index + 1 ? "active" : ""}`} onClick={() => setCurrentPage(index + 1)}>
                     {index + 1}
                   </button>
                 ))}
-
-                <button
-                  className="page-btn text-dark"
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  style={{ cursor: currentPage === totalPages || totalPages === 0 ? "not-allowed" : "pointer", opacity: currentPage === totalPages || totalPages === 0 ? 0.5 : 1 }}
-                >
+                <button className="page-btn text-dark" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages || totalPages === 0}>
                   {">"}
                 </button>
               </div>
