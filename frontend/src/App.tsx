@@ -33,46 +33,58 @@ import PaymentPage from "./pages/PaymentPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import AdminPaymentPage from "./pages/AdminPaymentPage";
 
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 function App() {
-  const path = window.location.pathname.toLowerCase();
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Rute Utama */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Rute Hotel & Destinasi */}
+        <Route path="/hotel-search" element={<HotelSearchPage />} />
+        <Route path="/hotel-detail" element={<HotelDetailPage />} />
+        <Route path="/destination-search" element={<DestinationSearchPage />} />
+        <Route path="/destination-detail" element={<DestinationDetailPage />} />
+        <Route path="/travel-partner" element={<TravelPartnerPage />} />
+        
+        {/* Rute Transportasi & Pembayaran */}
+        <Route path="/transport-search" element={<TransportSearchPage />} />
+        <Route path="/transport-detail" element={<TransportDetailPage />} />
+        <Route path="/payment-page" element={<PaymentPage />} />
+        <Route path="/payment-success" element={<PaymentSuccessPage />} />
+        
+        {/* Rute User Area */}
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/history" element={<BookingHistoryPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/grup" element={<GrupList />} />
+        
+        {/* RUTE OBROLAN DINAMIS (ID) */}
+        <Route path="/obrolan/:id" element={<GrupChat />} />
 
-  if (path === "/login") return <LoginPage />;
-  if (path === "/register") return <RegisterPage />;
+        {/* RUTE OBROLAN STATIS (ID) */}
+        <Route path="/grup/chat" element={<GrupChat />} />
 
-  if (path === "/hotel-search") return <HotelSearchPage />;
-  if (path === "/hotel-detail") return <HotelDetailPage />;
+        {/* Rute Admin */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<AdminUserPage />} />
+        <Route path="/admin/hotels" element={<AdminHotelPage />} />
+        <Route path="/admin/destinations" element={<AdminDestinationPage />} />
+        <Route path="/admin/promos" element={<AdminPromoPage />} />
+        <Route path="/admin/transport" element={<AdminTransportPage />} />
+        <Route path="/admin/groups" element={<AdminGroupPage />} />
+        <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
+        <Route path="/admin/payments" element={<AdminPaymentPage />} />
 
-  if (path === "/destination-search") return <DestinationSearchPage />;
-  if (path === "/destination-detail") return <DestinationDetailPage />;
-  if (path === "/travel-partner") return <TravelPartnerPage />;
-
-  if (path === "/transport-search") return <TransportSearchPage />;
-  if (path === "/transport-detail") return <TransportDetailPage />;
-
-  if (path === "/payment-page") return <PaymentPage />;
-  if (path === "/payment-success") return <PaymentSuccessPage />;
-  
-
-  if (path === "/help-center") return <HelpCenterPage />;
-
-  if (path === "/profile") return <ProfilePage />;
-  if (path === "/history") return <BookingHistoryPage />;
-  if (path === "/wishlist") return <WishlistPage />;
-  if (path === "/grup") return <GrupList />;
-  if (path === "/grup/chat") return <GrupChat/>
-
-
-  if (path === "/admin") return <AdminDashboard />;
-  if (path === "/admin/users") return <AdminUserPage />;
-  if (path === "/admin/hotels") return <AdminHotelPage />;
-  if (path === "/admin/destinations") return <AdminDestinationPage />;
-  if (path === "/admin/promos") return <AdminPromoPage />;
-  if (path === "/admin/transport") return <AdminTransportPage />;
-  if (path === "/admin/groups") return <AdminGroupPage />;
-  if (path === "/admin/monitoring") return <AdminMonitoringPage />;
-  if (path === "/admin/payments") return <AdminPaymentPage />;
-
-  return <HomePage />;
+        {/* Rute Bantuan */}
+        <Route path="/help-center" element={<HelpCenterPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

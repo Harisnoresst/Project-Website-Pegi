@@ -111,7 +111,7 @@ const AdminMonitoringPage: React.FC = () => {
               </div>
 
               <button className="btn-primary" onClick={handleExportPDF}>
-                <FaFileDownload /> Export PDF
+                <FaFileDownload /> Cetak
               </button>
             </div>
           </div>
