@@ -58,7 +58,7 @@ const RegisterPage: React.FC = () => {
     setSuccessMsg("");
 
     try {
-      const response = await fetch("http://localhost:5000/auth/request-otp", {
+      const response = await fetch("http://localhost:8080/api/auth/resend-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -103,26 +103,53 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/auth/request-otp", {
+      // 🔥 PERBAIKAN: Menggunakan request-otp untuk pendaftaran awal, BUKAN resend-otp
+      const response = await fetch("http://localhost:8080/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
+      // 🌟 AMAN DARI CRASH: Baca respon sebagai teks mentah dulu agar tidak memicu JSON parse error
+      const responseText = await response.text();
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(responseText);
+      } catch (jsonErr) {
+        errorData = { message: responseText };
+      }
+
       if (response.ok) {
+        // Pengecekan aman jika status OK tapi ada pesan error tersembunyi
+        if (
+          errorData.status === "error" || 
+          errorData.message?.toLowerCase().includes("terdaftar") || 
+          errorData.message?.toLowerCase().includes("exist")
+        ) {
+          setErrorMsg(errorData.message || "Email sudah terdaftar! Harap gunakan email lain.");
+          setIsLoading(false);
+          return;
+        }
+
         setTimeLeft(120); // Mulai timer dari awal
-        setShowOtpModal(true); // Munculkan popup
+        setShowOtpModal(true); // Munculkan popup resmi
       } else {
-        const errorData = await response.json();
-        setErrorMsg(errorData.message || "Gagal mengirim OTP.");
+        const isEmailRegistered = 
+          response.status === 409 || 
+          response.status === 400 || 
+          errorData.message?.toLowerCase().includes("terdaftar") ||
+          responseText.toLowerCase().includes("terdaftar");
+
+        if (isEmailRegistered) {
+          setErrorMsg("Email sudah terdaftar! Harap gunakan email lain.");
+        } else {
+          setErrorMsg(errorData.message || "Gagal mengirim OTP.");
+        }
       }
     } catch (error) {
       console.error("Error API:", error);
-      setErrorMsg("Gagal terhubung ke Server. Menjalankan mode Simulasi...");
-
-      // HANYA UNTUK SIMULASI (Otomatis buka modal jika API backend belum aktif)
-      setTimeLeft(120);
-      setShowOtpModal(true);
+      // 🔥 PINTU BELAKANG DITUTUP: Jika error/gagal koneksi, tampilkan pesan error asli dan JANGAN buka modal OTP!
+      setErrorMsg("Gagal terhubung ke Server. Pastikan backend Anda sudah aktif.");
     } finally {
       setIsLoading(false);
     }
@@ -255,6 +282,7 @@ const RegisterPage: React.FC = () => {
                     type="button"
                     className="input-icon-right"
                     onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -285,6 +313,7 @@ const RegisterPage: React.FC = () => {
                     type="button"
                     className="input-icon-right"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex={-1}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>

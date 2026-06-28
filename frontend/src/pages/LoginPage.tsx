@@ -1,5 +1,5 @@
 // src/pages/LoginPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import { useNavigate } from "react-router-dom"; 
@@ -12,36 +12,98 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
   const [errorMsg, setErrorMsg] = useState(""); 
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
 
   const navigate = useNavigate(); 
+
+  useEffect(() => {
+    if (!showOtpModal || timeLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [showOtpModal, timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const secs = (seconds % 60).toString().padStart(2, "0");
+    return `${minutes}:${secs}`;
+  };
+
+  const handleResendOtp = async () => {
+    setTimeLeft(120); 
+    setOtp("");
+    setIsLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const response = await axios.post("http://localhost:8080/api/auth/resend-otp", {
+        email: email,
+      });
+
+      if (response.status === 200) {
+        setSuccessMsg("Kode OTP baru berhasil dikirim!");
+      } else {
+        setErrorMsg("Gagal mengirim ulang kode. Silakan coba lagi.");
+      }
+    } catch (error) {
+      console.error("Error API:", error);
+      setErrorMsg("Gagal terhubung ke server.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string, target: HTMLInputElement) => {
+    if (/^\d?$/.test(value)) {
+      const newOtp = otp.split("");
+      newOtp[index] = value;
+      setOtp(newOtp.join(""));
+
+      if (value && target.nextElementSibling) {
+        (target.nextElementSibling as HTMLInputElement).focus();
+      }
+    }
+  };
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && e.currentTarget.previousElementSibling) {
+      (e.currentTarget.previousElementSibling as HTMLInputElement).focus();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(""); 
+    setSuccessMsg("");
+    setIsLoading(true);
 
     try {
-      // 1. Tembak API Login ke Backend Java
       const response = await axios.post("http://localhost:8080/api/auth/login", {
         email: email,
         password: password,
       });
 
-      // 2. CEK RESPONS BERDASARKAN JABATAN (ADMIN vs USER)
       if (response.data.token) {
-        // JALUR ADMIN: Token langsung turun
         localStorage.setItem("token", response.data.token);
         console.log("Login Admin Sukses, Token disimpan!");
-        
-        // Pindah otomatis ke halaman Admin Dashboard
         navigate("/admin"); 
-        
       } else if (response.data.status === "otp_sent") {
-        // JALUR USER: Disuruh nunggu OTP
-        console.log("OTP dikirim ke email, pindah ke halaman verifikasi...");
-        
-        // Pindah ke halaman form input OTP (Kalian harus bikin file VerifyOtpPage.tsx nanti)
-        navigate("/verify-otp", { state: { email: email } });
+        console.log("OTP dikirim ke email, memunculkan popup verifikasi...");
+        setTimeLeft(120);
+        setShowOtpModal(true);
       }
 
     } catch (error: any) {
@@ -51,6 +113,52 @@ const LoginPage: React.FC = () => {
       } else {
         setErrorMsg("Gagal terhubung ke server. Pastikan Backend nyala!");
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ========================================================
+  // FUNGSI VERIFIKASI (DENGAN LOG DEBUG)
+  // ========================================================
+  const handleVerifyAndLogin = async () => {
+    setIsLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    // 🔍 1. KITA CEK DATA APA YANG DIKIRIM KE JAVA DI CONSOLE BROWSER
+    console.log("🚀 DATA YANG DIKIRIM KE JAVA:", { email: email, otp: otp });
+
+    try {
+      const response = await axios.post("http://localhost:8080/api/auth/verify-otp", {
+        email: email,
+        
+        // ⚠️ PENTING: 
+        // Kalau di console log datanya udah bener tapi Java tetep error 500,
+        // Coba ganti tulisan 'otp: otp' di bawah ini jadi 'code: otp' atau 'otpCode: otp'
+        // Tergantung nama variabel di DTO Java kamu!
+        otp: otp, 
+      });
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        console.log("Login User Sukses, Token disimpan!");
+        
+        setShowOtpModal(false);
+        navigate("/"); 
+      } else {
+        setErrorMsg("Verifikasi gagal. Silakan coba lagi.");
+      }
+
+    } catch (error: any) {
+      console.error("Gagal verifikasi OTP:", error);
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg("Kode OTP salah atau sudah kedaluwarsa!");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,13 +193,7 @@ const LoginPage: React.FC = () => {
             <div className="login-header">
               <h1 className="login-logo">Pegi</h1>
               <div className="login-badge">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
                 </svg>
                 Bonus 100 Poin Pengguna Baru!
@@ -100,10 +202,7 @@ const LoginPage: React.FC = () => {
 
             <div className="login-tabs">
               <button className="login-tab-btn active">Masuk</button>
-              <button
-                className="login-tab-btn"
-                onClick={() => navigate("/register")}
-              >
+              <button className="login-tab-btn" onClick={() => navigate("/register")}>
                 Daftar
               </button>
             </div>
@@ -111,6 +210,11 @@ const LoginPage: React.FC = () => {
             {errorMsg && (
               <div style={{ color: "red", marginBottom: "15px", fontSize: "14px", backgroundColor: "#ffe6e6", padding: "10px", borderRadius: "5px" }}>
                 {errorMsg}
+              </div>
+            )}
+            {successMsg && (
+              <div style={{ color: "green", marginBottom: "15px", fontSize: "14px", backgroundColor: "#e6ffe6", padding: "10px", borderRadius: "5px" }}>
+                {successMsg}
               </div>
             )}
 
@@ -182,8 +286,8 @@ const LoginPage: React.FC = () => {
                 </span>
               </label>
 
-              <button type="submit" className="login-btn-primary">
-                Masuk
+              <button type="submit" className="login-btn-primary" disabled={isLoading}>
+                {isLoading ? "Memproses..." : "Masuk"}
               </button>
             </form>
 
@@ -216,6 +320,61 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* MODAL OTP */}
+      {showOtpModal && (
+        <div className="otp-modal-overlay">
+          <div className="otp-modal">
+            <div className="otp-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h2>Verifikasi Login</h2>
+            <p>
+              Demi keamanan, masukkan 6 digit kode OTP yang telah dikirimkan ke alamat email anda <strong>({email.substring(0, 3)}***@gmail.com)</strong>
+            </p>
+
+            <div className="otp-inputs">
+              {[...Array(6)].map((_, i) => (
+                <input 
+                  key={i} 
+                  type="text" 
+                  maxLength={1} 
+                  value={otp[i] || ""} 
+                  onChange={(e) => handleOtpChange(i, e.target.value, e.target)} 
+                  onKeyDown={(e) => handleOtpKeyDown(e, i)}
+                  disabled={isLoading} 
+                />
+              ))}
+            </div>
+
+            {timeLeft > 0 ? (
+              <p className="otp-timer">Kirim ulang kode dalam {formatTime(timeLeft)}</p>
+            ) : (
+              <p className="otp-timer" style={{ cursor: "pointer", color: "#7B3FE4", textDecoration: "underline" }} onClick={handleResendOtp}>
+                Kirim ulang kode OTP
+              </p>
+            )}
+
+            <button 
+              className="btn-verify-create" 
+              disabled={otp.length !== 6 || isLoading} 
+              onClick={handleVerifyAndLogin}
+            >
+              {isLoading ? "Memverifikasi..." : "Verifikasi & Masuk"}
+            </button>
+
+            <button 
+              className="btn-back-register" 
+              onClick={() => setShowOtpModal(false)} 
+              disabled={isLoading}
+            >
+              ← Batal & Kembali
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

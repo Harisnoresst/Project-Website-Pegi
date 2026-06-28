@@ -31,6 +31,37 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailOtpService emailOtpService;
 
+    // ===== 🔥 BARU: TAHAP 1 REGISTER (Minta OTP Awal) =====
+    // Berfungsi sebagai gembok depan untuk memblokir email yang sudah terdaftar
+    public Map<String, Object> requestOtp(Map<String, String> request) {
+        String email = request.get("email");
+
+        // 1. Validasi utama: Jika email sudah ada di DB, stop dan lempat error!
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email sudah terdaftar! Harap gunakan email lain.");
+        }
+
+        // 2. Jika aman/belum terdaftar, generate OTP 6 digit
+        String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
+
+        // 3. Simpan OTP ke database (berlaku 5 menit)
+        OtpVerification otp = OtpVerification.builder()
+                .email(email)
+                .otpCode(otpCode)
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpVerificationRepository.save(otp);
+
+        // 4. Kirim kode OTP pendaftaran ke email user
+        emailOtpService.sendOtpEmail(email, otpCode);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "otp_sent");
+        response.put("message", "Kode OTP pendaftaran telah dikirim ke email kamu, silakan verifikasi");
+        response.put("email", email);
+        return response;
+    }
+
     // ===== REGISTER ===== (tidak berubah)
     public Map<String, Object> register(Map<String, String> request) {
         String email = request.get("email");
@@ -60,7 +91,7 @@ public class AuthService {
         return response;
     }
 
-    // ===== LOGIN — TAHAP 1: validasi password, cek ADMIN bypass, atau kirim OTP =====
+    // ===== LOGIN — TAHAP 1: validasi password, cek ADMIN bypass, atau kirim OTP ===== (tidak berubah)
     public Map<String, Object> login(Map<String, String> request) {
         String email    = request.get("email");
         String password = request.get("password");
@@ -75,11 +106,6 @@ public class AuthService {
             System.err.println("!!! GAGAL LOGIN BRO !!! Alasan dari Java: " + e.getMessage());
             throw new RuntimeException("Gagal Otentikasi: " + e.getMessage());
         }
-
-        // Validasi email + password dulu (kalau salah, langsung throw exception)
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-        );
 
         // Ambil data user dari database untuk mengecek jabatannya (Role)
         User user = userRepository.findByEmail(email)
@@ -126,7 +152,9 @@ public class AuthService {
     // ===== LOGIN — TAHAP 2: verifikasi OTP, baru kasih token ===== (tidak berubah)
     public Map<String, Object> verifyOtp(Map<String, String> request) {
         String email   = request.get("email");
-        String otpCode = request.get("otpCode");
+        
+        // PERBAIKAN DI SINI: Sesuaikan key dengan yang dikirim React ("otp")
+        String otpCode = request.get("otp"); 
 
         // Ambil OTP terbaru milik email ini yang belum diverifikasi
         OtpVerification otp = otpVerificationRepository

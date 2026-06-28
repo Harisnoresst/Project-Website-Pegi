@@ -50,6 +50,27 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+   
+    @PostMapping("/request-otp")
+    public ResponseEntity<?> requestOtp(@RequestBody Map<String, String> request) {
+        try {
+            Map<String, Object> response = authService.requestOtp(request);
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("sudah terdaftar")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                        "status", "error",
+                        "message", e.getMessage()
+                ));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "status", "error",
+                    "message", "Gagal server: " + e.getMessage()
+            ));
+        }
+    }
+
     // POST /api/auth/logout
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {

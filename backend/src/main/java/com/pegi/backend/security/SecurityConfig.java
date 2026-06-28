@@ -41,7 +41,8 @@ public class SecurityConfig {
                     "/api/auth/register",
                     "/api/auth/login",
                     "/api/auth/verify-otp",   
-                    "/api/auth/resend-otp",   
+                    "/api/auth/resend-otp",  
+                    "/api/auth/request-otp",   
                     "/api/reviews/**",
                     "/error"
                 ).permitAll()

@@ -194,49 +194,67 @@
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
+/* 🌟 ICON KIRI FIXED: Presisi di tengah & klik tembus langsung ke input */
 .input-icon-left {
     position: absolute;
-    left: 14px;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     color: #9CA3AF;
     display: flex;
+    align-items: center;
+    pointer-events: none;
+    z-index: 3;
 }
 
+/* 🌟 ICON KANAN MATA FIXED: Presisi di tengah vertikal */
 .input-icon-right {
     position: absolute;
-    right: 14px;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     color: #9CA3AF;
     background: none;
     border: none;
     cursor: pointer;
     display: flex;
+    align-items: center;
     padding: 0;
+    z-index: 3;
 }
 
 .input-icon-right:hover {
     color: #6B7280;
 }
 
-.form-control {
+/* 🌟 FORM CONTROL UPDATE: Spesifisitas dinaikkan & pakai !important agar anti-bentrok CSS luar */
+.input-wrapper .form-control {
     width: 100%;
     height: 48px;
-    padding: 0 16px 0 42px;
+    padding-left: 48px !important;  /* Terkunci aman dari tabrakan ikon kiri */
+    padding-right: 48px !important; /* Terkunci aman dari tabrakan ikon mata kanan */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     background-color: #ffffff;
     font-size: 14px;
     color: #1F2937;
     transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box !important;
+    z-index: 1;
 }
 
-.form-control:focus {
+.input-wrapper .form-control:focus {
     outline: none;
     border-color: #7B3FE4;
     box-shadow: 0 0 0 3px rgba(123, 63, 228, 0.1);
 }
 
-.form-control::placeholder {
+.input-wrapper .form-control::placeholder {
     color: #D1D5DB;
 }
 
@@ -355,7 +373,6 @@
 
 .btn-social svg {
     font-size: 20px;
-    /* Size konsisten untuk React Icons */
 }
 
 
@@ -483,7 +500,7 @@
 .btn-verify-create {
   width: 100%;
   padding: 14px;
-  background-color: #4f46e5; /* Warna ungu baru */
+  background-color: #4f46e5;
   color: white;
   border: none;
   border-radius: 12px;
