@@ -33,6 +33,8 @@ import PaymentPage from "./pages/PaymentPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import AdminPaymentPage from "./pages/AdminPaymentPage";
 
+import LegalPage from "./pages/LegalPage";
+
 function App() {
   const path = window.location.pathname.toLowerCase();
 
@@ -61,6 +63,7 @@ function App() {
   if (path === "/grup") return <GrupList />;
   if (path === "/grup/chat") return <GrupChat/>
 
+  if (path === "/legal") return <LegalPage />;
 
   if (path === "/admin") return <AdminDashboard />;
   if (path === "/admin/users") return <AdminUserPage />;

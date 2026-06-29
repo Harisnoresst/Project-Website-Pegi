@@ -1,34 +1,46 @@
 import "./Footer.css";
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
 
 const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-container">
-
         {/* LEFT */}
         <div className="footer-brand">
-          <h2>Pegi</h2>
+          <a href="/" className="footer-logo-link">
+            <img
+              src="/Logo_Pegi_noBg.png"
+              alt="Pegi"
+              className="footer-logo"
+              draggable={false}
+            />
+          </a>
 
           <p>
-            Solusi perjalanan terpercaya untuk eksplorasi nusantara
-            tanpa batas dengan kenyamanan maksimal.
+            Solusi perjalanan terpercaya untuk eksplorasi nusantara tanpa batas
+            dengan kenyamanan maksimal.
           </p>
 
           <div className="footer-social">
-            <a href="#">
-              <i className="fa-brands fa-instagram"></i>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer">
+              <FaInstagram />
             </a>
 
-            <a href="#">
-              <i className="fa-brands fa-facebook-f"></i>
+            <a href="https://facebook.com" target="_blank" rel="noreferrer">
+              <FaFacebookF />
             </a>
 
-            <a href="#">
-              <i className="fa-brands fa-x-twitter"></i>
+            <a href="https://x.com" target="_blank" rel="noreferrer">
+              <FaXTwitter />
             </a>
 
-            <a href="#">
-              <i className="fa-brands fa-youtube"></i>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer">
+              <FaYoutube />
             </a>
           </div>
         </div>
@@ -67,9 +79,7 @@ const Footer = () => {
           <a href="/help-center">Pusat Bantuan</a>
 
           <a href="#">FAQ</a>
-
         </div>
-
       </div>
 
       <div className="footer-divider"></div>

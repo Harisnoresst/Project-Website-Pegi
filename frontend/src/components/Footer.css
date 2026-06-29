@@ -13,11 +13,35 @@
     gap: 50px;
 }
 
-.footer-brand h2 {
-    color: #7B3FE4;
-    font-size: 36px;
-    font-weight: 800;
+.footer-logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.footer-logo {
+    width: 150px;
+    height: auto;
+    object-fit: contain;
+    display: block;
     margin-bottom: 20px;
+    transition: .2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+.footer-logo:hover {
+    transform: scale(1.03);
+}
+
+.footer-logo:active {
+    transform: scale(.98);
 }
 
 .footer-brand p {

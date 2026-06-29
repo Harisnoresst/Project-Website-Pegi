@@ -138,7 +138,11 @@ const RegisterPage: React.FC = () => {
         <div className="register-left">
           <div className="glass-card">
             <h3>Perjalanan yang Lebih Bermakna.</h3>
-            <p>Jelajahi keindahan Indonesia dengan kenyamanan yang belum pernah ada sebelumnya. Dari hotel mewah hingga transportasi yang handal, Pegi siap menemani setiap langkah Anda.</p>
+            <p>
+              Jelajahi keindahan Indonesia dengan kenyamanan yang belum pernah
+              ada sebelumnya. Dari hotel mewah hingga transportasi yang handal,
+              Pegi siap menemani setiap langkah Anda.
+            </p>
             <div className="testimonial-info">
               <div className="avatar-group">
                 <div className="avatar"></div>
@@ -153,9 +157,22 @@ const RegisterPage: React.FC = () => {
         <div className="register-right">
           <div className="form-container">
             <div className="form-header">
-              <h1 className="logo-text">Pegi</h1>
+              <a href="/" className="logo-link">
+                <img
+                  src="/Logo_Pegi_noBg.png"
+                  alt="Pegi"
+                  className="logo-image"
+                  draggable={false}
+                />
+              </a>
               <div className="badge-bonus">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
                 </svg>
                 Bonus 100 Poin Pengguna Baru!
@@ -163,7 +180,10 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div className="auth-tabs">
-              <button className="tab-btn" onClick={() => (window.location.href = "/login")}>
+              <button
+                className="tab-btn"
+                onClick={() => (window.location.href = "/login")}
+              >
                 Masuk
               </button>
               <button className="tab-btn active">Daftar</button>
@@ -173,23 +193,57 @@ const RegisterPage: React.FC = () => {
               <div className="input-group">
                 <label className="input-label">Nama Lengkap</label>
                 <div className="input-wrapper">
-                  <input type="text" className="form-control" placeholder="Nama lengkap Anda" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Nama lengkap Anda"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
                 </div>
               </div>
 
               <div className="input-group">
                 <label className="input-label">Alamat Email</label>
                 <div className="input-wrapper">
-                  <input type="email" className="form-control" placeholder="nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="nama@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
               </div>
 
               <div className="input-group">
                 <label className="input-label">Kata Sandi</label>
                 <div className="input-wrapper">
-                  <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Min. 8 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  <button type="button" className="input-icon-right" onClick={() => setShowPassword(!showPassword)}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control"
+                    placeholder="Min. 8 karakter"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="input-icon-right"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
@@ -200,9 +254,29 @@ const RegisterPage: React.FC = () => {
               <div className="input-group">
                 <label className="input-label">Konfirmasi Kata Sandi</label>
                 <div className="input-wrapper">
-                  <input type={showConfirmPassword ? "text" : "password"} className="form-control" placeholder="Ketik ulang kata sandi" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                  <button type="button" className="input-icon-right" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="form-control"
+                    placeholder="Ketik ulang kata sandi"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="input-icon-right"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
@@ -211,20 +285,29 @@ const RegisterPage: React.FC = () => {
               </div>
 
               <label className="checkbox-group">
-                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} required />
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  required
+                />
                 <span className="checkbox-label">
                   Saya menyetujui{" "}
-                  <a href="#terms" className="text-purple">
+                  <a href="/legal#terms" className="text-purple">
                     Syarat & Ketentuan
                   </a>{" "}
                   serta{" "}
-                  <a href="#privacy" className="text-purple">
+                  <a href="/legal#privacy" className="text-purple">
                     Kebijakan Privasi
                   </a>
                 </span>
               </label>
 
-              <button type="submit" className="btn-primary" disabled={isLoading}>
+              <button
+                type="submit"
+                className="register-btn-primary"
+                disabled={isLoading}
+              >
                 {isLoading ? "Memproses..." : "Daftar Akun Baru"}
               </button>
             </form>
@@ -256,35 +339,69 @@ const RegisterPage: React.FC = () => {
         <div className="otp-modal-overlay">
           <div className="otp-modal">
             <div className="otp-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+              >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
             <h2>Verifikasi Pendaftaran</h2>
             <p>
-              Demi keamanan, masukkan 6 digit kode OTP yang telah dikirimkan ke alamat email anda <strong>({email.substring(0, 3)}***@gmail.com)</strong>
+              Demi keamanan, masukkan 6 digit kode OTP yang telah dikirimkan ke
+              alamat email anda{" "}
+              <strong>({email.substring(0, 3)}***@gmail.com)</strong>
             </p>
 
             <div className="otp-inputs">
               {[...Array(6)].map((_, i) => (
-                <input key={i} type="text" maxLength={1} value={otp[i] || ""} onChange={(e) => handleOtpChange(i, e.target.value)} disabled={isLoading} />
+                <input
+                  key={i}
+                  type="text"
+                  maxLength={1}
+                  value={otp[i] || ""}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  disabled={isLoading}
+                />
               ))}
             </div>
 
             {/* PERUBAHAN TIMER REALTIME ADA DI SINI */}
             {timeLeft > 0 ? (
-              <p className="otp-timer">Kirim ulang kode dalam {formatTime(timeLeft)}</p>
+              <p className="otp-timer">
+                Kirim ulang kode dalam {formatTime(timeLeft)}
+              </p>
             ) : (
-              <p className="otp-timer" style={{ cursor: "pointer", color: "#7B3FE4", textDecoration: "underline" }} onClick={handleResendOtp}>
+              <p
+                className="otp-timer"
+                style={{
+                  cursor: "pointer",
+                  color: "#7B3FE4",
+                  textDecoration: "underline",
+                }}
+                onClick={handleResendOtp}
+              >
                 Kirim ulang kode OTP
               </p>
             )}
 
-            <button className="btn-verify-create" disabled={otp.length !== 6 || isLoading} onClick={handleVerifyAndRegister}>
+            <button
+              className="btn-verify-create"
+              disabled={otp.length !== 6 || isLoading}
+              onClick={handleVerifyAndRegister}
+            >
               {isLoading ? "Memverifikasi..." : "Verifikasi & Buat Akun"}
             </button>
 
-            <button className="btn-back-register" onClick={() => setShowOtpModal(false)} disabled={isLoading}>
+            <button
+              className="btn-back-register"
+              onClick={() => setShowOtpModal(false)}
+              disabled={isLoading}
+            >
               ← Kembali ke halaman Daftar
             </button>
           </div>

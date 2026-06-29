@@ -627,14 +627,13 @@ const HomePage: React.FC = () => {
         <section className="feature-section">
           <div className="feature-image-wrapper">
             <img
-              src=""
+              src="/CariTemanPerjalanan.jpg"
               alt="Teman Perjalanan"
               className="feature-img"
               style={{ backgroundColor: "#E5E7EB" }}
             />
             <div className="floating-card">
               <div className="floating-card-header">
-                <div className="floating-icon">✌️</div>
                 <span>1.2k+ Partner Tersedia</span>
               </div>
               <p className="floating-text">
