@@ -48,7 +48,14 @@ const LoginPage: React.FC = () => {
           <div className="login-form-container">
             {/* Header */}
             <div className="login-header">
-              <h1 className="login-logo">Pegi</h1>
+              <a href="/" className="login-logo-link">
+                <img
+                  src="/Logo_Pegi_noBg.png"
+                  alt="Pegi"
+                  className="login-logo"
+                  draggable={false}
+                />
+              </a>
               <div className="login-badge">
                 <svg
                   width="14"
@@ -212,9 +219,9 @@ const LoginPage: React.FC = () => {
 
             {/* Footer Links */}
             <div className="login-footer">
-              <a href="#terms">Syarat & Ketentuan</a>
-              <a href="#privacy">Kebijakan Privasi</a>
-              <a href="#help">Bantuan</a>
+              <a href="/legal#terms">Syarat & Ketentuan</a>
+              <a href="/legal#privacy">Kebijakan Privasi</a>
+              <a href="/help-center">Bantuan</a>
             </div>
           </div>
         </div>

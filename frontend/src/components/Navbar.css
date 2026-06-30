@@ -17,11 +17,37 @@
     justify-content: space-between;
 }
 
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .navbar-logo a {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    font-size: 40px;
-    font-weight: 800;
-    color: #7b3fe4;
+}
+
+.navbar-logo-img {
+    width: 130px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    transition: transform .2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: auto;
+}
+
+.navbar-logo-img:hover {
+    transform: scale(1.03);
 }
 
 .navbar-menu {
@@ -94,13 +120,16 @@
     .navbar-menu {
         display: none;
     }
+    .navbar-logo-img {
+        width: 115px;
+    }
 }
 
 @media (max-width: 768px) {
     .navbar-container {
         padding: 0 16px;
     }
-    .navbar-logo a {
-        font-size: 32px;
+    .navbar-logo-img {
+        width: 100px;
     }
 }

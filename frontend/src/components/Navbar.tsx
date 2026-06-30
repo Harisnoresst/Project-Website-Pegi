@@ -17,10 +17,12 @@ const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="navbar">
       <div className="navbar-container">
-
+        {/* LOGO */}
         {/* LOGO */}
         <div className="navbar-logo">
-          <a href="/">Pegi</a>
+          <a href="/">
+            <img src="/Logo_Pegi_noBg.png" alt="Pegi" className="navbar-logo-img" draggable={false} />
+          </a>
         </div>
 
         {/* MENU */}
@@ -54,9 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
           <a
             href="/help-center"
-            className={`navbar-link ${
-              path === "/help-center" ? "active" : ""
-            }`}
+            className={`navbar-link ${path === "/help-center" ? "active" : ""}`}
           >
             Pusat Bantuan
           </a>
@@ -65,7 +65,6 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* RIGHT */}
         {isLoggedIn ? (
           <div className="navbar-user">
-
             {/* Notification */}
             <a href="/booking-history" className="navbar-notification">
               🔔
@@ -73,37 +72,22 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Profile */}
             <a href="/profile" className="navbar-profile">
-
               <span>{username}</span>
 
-              <img
-                src={avatar}
-                alt={username}
-              />
-
+              <img src={avatar} alt={username} />
             </a>
-
           </div>
         ) : (
           <div className="navbar-auth">
-
-            <a
-              href="/register"
-              className="btn-register"
-            >
+            <a href="/register" className="btn-register">
               Daftar
             </a>
 
-            <a
-              href="/login"
-              className="btn-login"
-            >
+            <a href="/login" className="btn-login">
               Masuk
             </a>
-
           </div>
         )}
-
       </div>
     </header>
   );

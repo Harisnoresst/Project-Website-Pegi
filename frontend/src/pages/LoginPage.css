@@ -116,12 +116,34 @@
     margin-bottom: 32px;
 }
 
+.login-logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .login-logo {
-    color: #4A23A4;
-    font-size: 32px;
-    font-weight: 800;
-    margin: 0;
-    letter-spacing: -1px;
+    width: 145px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    transition: .2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+.login-logo:hover {
+    transform: scale(1.02);
+}
+
+.login-logo:active {
+    transform: scale(.98);
 }
 
 .login-badge {
