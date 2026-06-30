@@ -149,6 +149,14 @@ const AdminGroupPage: React.FC = () => {
   const destList = groups.map((g) => g.destination);
   const favoriteDest = destList.length > 0 ? destList.sort((a, b) => destList.filter((v) => v === a).length - destList.filter((v) => v === b).length).pop() : "-";
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const imageUrl = URL.createObjectURL(file); // Membuat preview URL
+      setFormData({ ...formData, img: imageUrl });
+    }
+  };
+
   return (
     <div className="admin-layout">
       <AdminSidebar activeMenu="grup" />
@@ -378,6 +386,17 @@ const AdminGroupPage: React.FC = () => {
                 <option value="Menunggu">Menunggu</option>
                 <option value="Selesai">Selesai</option>
               </select>
+            </div>
+
+            <div className="form-group">
+              <label>Gambar Grup</label>
+              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "block", margin: "10px 0" }} />
+              {/* Preview Gambar jika sudah di-upload */}
+              {formData.img && (
+                <div style={{ marginTop: "10px", height: "100px", width: "100%", borderRadius: "8px", overflow: "hidden" }}>
+                  <img src={formData.img} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+              )}
             </div>
 
             <div className="modal-actions">

@@ -64,11 +64,8 @@ const Footer = () => {
         <div className="footer-column">
           <h4>Tentang</h4>
 
-          <a href="#">Tentang Kami</a>
+          <a href="//help-center">Tentang Kami</a>
 
-          <a href="#">Kebijakan Privasi</a>
-
-          <a href="#">Syarat & Ketentuan</a>
         </div>
 
         {/* DUKUNGAN */}
@@ -78,7 +75,8 @@ const Footer = () => {
 
           <a href="/help-center">Pusat Bantuan</a>
 
-          <a href="#">FAQ</a>
+          <a href="/help-center">FAQ</a>
+
         </div>
       </div>
 
