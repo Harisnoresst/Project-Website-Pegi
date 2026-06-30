@@ -195,7 +195,6 @@ const GrupList: React.FC = () => {
               </button>
             </div>
 
-            {/* BAGIAN HIGHLIGHT YANG SEKARANG DINAMIS */}
             <div className="highlight-grid">
               <div className="highlight-card bromo-card">
                 <div className="bromo-info">
