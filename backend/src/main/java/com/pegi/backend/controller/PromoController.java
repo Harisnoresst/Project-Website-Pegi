@@ -1,44 +1,38 @@
 package com.pegi.backend.controller;
 
-import com.pegi.backend.entity.Promo;
 import com.pegi.backend.service.PromoService;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pegi.backend.service.PromoValidationResult;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/promos")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class PromoController {
 
-    @Autowired
-    private PromoService promoService;
-
-    @GetMapping
-    public List<Promo> getAllPromos() {
-        return promoService.getAllPromos();
-    }
-
-    @PostMapping
-    public Promo createPromo(@RequestBody Promo promo) {
-        return promoService.createPromo(promo);
-    }
+    private final PromoService promoService;
 
     @PostMapping("/validate")
-    public ResponseEntity<?> validatePromo(@RequestBody Map<String, String> request) {
-        
-        String code = request.get("code");
-        Promo promo = promoService.validatePromo(code);
-        
-        if (promo != null && promo.getIsActive()) {
-            
-            return ResponseEntity.ok(promo);
-        } else {
-            
-            return ResponseEntity.badRequest().body("Kode promo tidak valid atau sudah tidak aktif");
+    public ResponseEntity<PromoValidationResult> validatePromo(@RequestBody ValidatePromoRequest request) {
+        PromoValidationResult result = promoService.validateAndApply(
+            request.getCode(),
+            request.getCategory(),
+            request.getOriginalPrice()
+        );
+
+        if (!result.isValid()) {
+            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.ok(result);
+    }
+
+    @Data
+    public static class ValidatePromoRequest {
+        private String code;
+        private String category;     // "Hotel" atau "Tiket Pesawat" (dipakai untuk destinasi, lihat catatan di bawah)
+        private Double originalPrice;
     }
 }

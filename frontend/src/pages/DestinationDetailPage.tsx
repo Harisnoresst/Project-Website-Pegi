@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import { useNavigate } from "react-router-dom"; // 1. Tambahin import useNavigate
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdStar,
@@ -16,20 +18,21 @@ import "./DestinationDetailPage.css";
 
 const DestinationDetailPage: React.FC = () => {
   const [destination, setDestination] = useState<DestinationType | null>(null);
-
   const [isLoading, setIsLoading] = useState(true);
-
   const [ticketCount, setTicketCount] = useState(1);
+  
+  // 2. Tambahin state untuk nyimpen tanggal yang dipilih
+  const [selectedDate, setSelectedDate] = useState(""); 
+  
+  const navigate = useNavigate(); // Inisialisasi navigasi
 
   const params = new URLSearchParams(window.location.search);
-
   const destinationId = Number(params.get("id"));
 
   useEffect(() => {
     const fetchDestination = async () => {
       try {
         setIsLoading(true);
-
         const data = await getDestinationById(destinationId);
 
         if (!data) {
@@ -66,9 +69,27 @@ const DestinationDetailPage: React.FC = () => {
 
   const totalPrice = destination.priceValue * ticketCount;
 
+  // 3. Buat fungsi tombol beli tiket
+  const handleBuyTicket = () => {
+    if (!selectedDate) {
+      alert("Silakan pilih tanggal kunjungan terlebih dahulu!");
+      return;
+    }
+
+    navigate("/Payment-Page", {
+      state: {
+        destinationId: destination.id,
+        destinationName: destination.name,
+        ticketCount: ticketCount,
+        date: selectedDate,
+        totalPrice: totalPrice
+      }
+    });
+  };
+
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="destination-detail-page">
         {/* HERO */}
@@ -91,13 +112,9 @@ const DestinationDetailPage: React.FC = () => {
 
             <div className="hero-location">
               <MdLocationOn />
-
               <span>{destination.location}</span>
-
               <span>•</span>
-
               <MdStar />
-
               <span>{destination.rating}</span>
             </div>
           </div>
@@ -113,20 +130,16 @@ const DestinationDetailPage: React.FC = () => {
                 <div className="destination-info-grid">
                   <div className="info-item">
                     <MdAccessTime />
-
                     <div>
                       <span>Jam Operasional</span>
-
                       <strong>{destination.bestTime}</strong>
                     </div>
                   </div>
 
                   <div className="info-item">
                     <MdConfirmationNumber />
-
                     <div>
                       <span>Durasi Visit</span>
-
                       <strong>{destination.duration}</strong>
                     </div>
                   </div>
@@ -148,7 +161,6 @@ const DestinationDetailPage: React.FC = () => {
 
                   <div className="review-rating">
                     <span>{destination.rating}</span>
-
                     <MdStar />
                     <MdStar />
                     <MdStar />
@@ -163,10 +175,8 @@ const DestinationDetailPage: React.FC = () => {
                       <div className="review-avatar">
                         {review.name.charAt(0).toUpperCase()}
                       </div>
-
                       <div className="review-content">
                         <h4>{review.name}</h4>
-
                         <p>{review.comment}</p>
                       </div>
                     </div>
@@ -188,7 +198,6 @@ const DestinationDetailPage: React.FC = () => {
 
                 <div className="ticket-price-row">
                   <span>Harga Mulai Dari</span>
-
                   <strong>{destination.price}</strong>
                 </div>
 
@@ -196,13 +205,16 @@ const DestinationDetailPage: React.FC = () => {
 
                 <div className="ticket-field">
                   <label>Tanggal Kunjungan</label>
-
-                  <input type="date" />
+                  {/* 4. Sambungkan input tanggal ke state */}
+                  <input 
+                    type="date" 
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
                 </div>
 
                 <div className="ticket-field">
                   <label>Jumlah Tiket</label>
-
                   <div className="ticket-counter">
                     <button
                       onClick={() =>
@@ -211,9 +223,7 @@ const DestinationDetailPage: React.FC = () => {
                     >
                       <MdRemove />
                     </button>
-
                     <span>{ticketCount}</span>
-
                     <button onClick={() => setTicketCount(ticketCount + 1)}>
                       <MdAdd />
                     </button>
@@ -222,43 +232,22 @@ const DestinationDetailPage: React.FC = () => {
 
                 <div className="ticket-total">
                   <span>Total</span>
-
                   <strong>Rp {totalPrice.toLocaleString("id-ID")}</strong>
                 </div>
 
-                <button className="buy-ticket-btn">Beli Tiket Masuk</button>
+                {/* 5. Pasang onClick ke tombol */}
+                <button 
+                  className="buy-ticket-btn"
+                  onClick={handleBuyTicket}
+                >
+                  Beli Tiket Masuk
+                </button>
               </div>
-            </div>
-          </section>
-
-          {/* TRAVELER */}
-          <section className="traveler-section">
-            <div className="traveler-header">
-              <div>
-                <h2>Traveler Lain yang Ke Sini di Tanggal yang Sama</h2>
-
-                <p>Temukan teman perjalanan baru dan bagikan pengalamanmu.</p>
-              </div>
-
-              <button className="partner-btn">Cari Travel Partner</button>
-            </div>
-
-            <div className="traveler-list">
-              {["Raka", "Anisa", "Kevin", "Dina", "Arif"].map((traveler) => (
-                <div key={traveler} className="traveler-card">
-                  <div className="traveler-avatar">
-                    {traveler.charAt(0).toUpperCase()}
-                  </div>
-
-                  <h4>{traveler}</h4>
-                </div>
-              ))}
-
-              <div className="traveler-card add-card">+</div>
             </div>
           </section>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdStar,
@@ -13,6 +14,13 @@ import { getHotels } from "../services/hotelService";
 import type { HotelType } from "../types/HotelType";
 import "./HotelSearchPage.css";
 import { formatRupiah } from "../Utils/formatCurrency";
+
+// Helper: ambil harga termurah dari daftar rooms milik hotel.
+// HotelType tidak punya field price/priceValue sendiri, jadi dihitung dari rooms[].
+const getLowestPrice = (hotel: HotelType): number => {
+  if (!hotel.rooms || hotel.rooms.length === 0) return 0;
+  return Math.min(...hotel.rooms.map((r) => r.price));
+};
 
 const HotelSearchPage: React.FC = () => {
   // State untuk melacak ID hotel mana saja yang disukai
@@ -28,6 +36,9 @@ const HotelSearchPage: React.FC = () => {
   // State untuk menyimpan data dari API dan status loading
   const [hotels, setHotels] = useState<HotelType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const params = new URLSearchParams(window.location.search);
+
+  const locationParam = params.get("location") || "";
 
   // STATE PAGINASI
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -37,9 +48,15 @@ const HotelSearchPage: React.FC = () => {
   useEffect(() => {
     const fetchHotelData = async () => {
       setIsLoading(true);
+
       try {
         const data = await getHotels();
+
         setHotels(data as HotelType[]);
+
+        if (locationParam) {
+          setSearchTerm(locationParam);
+        }
       } catch (error) {
         console.error("Gagal mengambil data hotel", error);
       } finally {
@@ -48,7 +65,7 @@ const HotelSearchPage: React.FC = () => {
     };
 
     fetchHotelData();
-  }, []);
+  }, [locationParam]);
 
   const toggleFavorite = (id: number) => {
     if (favorites.includes(id)) {
@@ -79,25 +96,25 @@ const HotelSearchPage: React.FC = () => {
   };
   const filteredHotels = hotels
     .filter((hotel) => {
-      const matchSearch = hotel.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const matchSearch =
+        hotel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel.location.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchAmenities =
         selectedAmenities.length === 0 ||
         selectedAmenities.every((amenity) => hotel.amenities.includes(amenity));
 
       const min = minPrice === "" ? 0 : Number(minPrice);
-
       const max = maxPrice === "" ? Infinity : Number(maxPrice);
 
-      const matchPrice = hotel.priceValue >= min && hotel.priceValue <= max;
+      const lowestPrice = getLowestPrice(hotel);
+      const matchPrice = lowestPrice >= min && lowestPrice <= max;
 
       return matchSearch && matchPrice && matchAmenities;
     })
     .sort((a, b) => {
       if (sortBy === "price-low") {
-        return a.priceValue - b.priceValue;
+        return getLowestPrice(a) - getLowestPrice(b);
       }
 
       if (sortBy === "rating") {
@@ -117,7 +134,7 @@ const HotelSearchPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="hotel-search-wrapper">
         <div className="hotel-main-container">
@@ -240,7 +257,11 @@ const HotelSearchPage: React.FC = () => {
             <div className="results-header-block">
               <div className="results-title-group">
                 <h4>Hasil Pencarian</h4>
-                <h1>Luxury Stays di Indonesia</h1>
+                <h1>
+                  {searchTerm
+                    ? `Hotel di ${searchTerm}`
+                    : "Luxury Stays di Indonesia"}
+                </h1>
               </div>
               <div className="sort-group">
                 <span>Urutkan:</span>
@@ -289,7 +310,7 @@ const HotelSearchPage: React.FC = () => {
                 {currentHotels.map((hotel) => (
                   <div className="hotel-card" key={hotel.id}>
                     <div className="card-img-wrapper">
-                      <img src={hotel.image} alt={hotel.name} />
+                      {hotel.img && <img src={hotel.img} alt={hotel.name} />}
 
                       <button
                         className="btn-favorite"
@@ -319,7 +340,7 @@ const HotelSearchPage: React.FC = () => {
                       <div className="card-footer">
                         <div className="price-info">
                           <p>Mulai dari</p>
-                          <h3>{hotel.price}</h3>
+                          <h3>{formatRupiah(getLowestPrice(hotel))}</h3>
                         </div>
 
                         <button
@@ -388,6 +409,7 @@ const HotelSearchPage: React.FC = () => {
           </main>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

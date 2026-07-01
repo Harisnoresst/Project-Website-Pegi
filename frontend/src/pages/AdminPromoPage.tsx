@@ -50,7 +50,7 @@ const AdminPromoPage: React.FC = () => {
 
   const handleOpenAdd = () => {
     setModalType("add");
-    setFormData({ title: "", code: "", category: "Tiket Pesawat", discount: "", status: "Draft", validUntil: "", usageLimit: 0, usageCount: 0, img: "" });
+    setFormData({ title: "", code: "", category: "Tiket Pesawat", discount: "", status: "Draft", validUntil: "", usageLimit: 100, usageCount: 0, img: "" });
     setIsModalOpen(true);
   };
 

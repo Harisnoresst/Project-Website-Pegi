@@ -1,48 +1,44 @@
+/* Core Layout Fixes */
 .page-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Wajib pakai height: 100vh, BUKAN min-height */
-  overflow: hidden; 
-  background-color: #f8f9fa;
+  height: calc(100vh - 70px); /* Kurangi tinggi perkiraan navbar agar header tidak terpotong */
+  background-color: #fcfdfe;
 }
 
-
-.profile-layout, .traveler-layout {
+.profile-layout {
   display: flex;
   flex: 1; 
-  overflow: hidden; /* Mencegah luber */
+  overflow: hidden;
   font-family: "Inter", sans-serif;
 }
 
 .profile-main {
   flex: 1;
-  padding: 40px;
+  padding: 30px 40px 40px 40px;
   display: flex;
   flex-direction: column;
-}
-
-.main-container {
-  width: 100%;
-  max-width: 1140px; 
+  overflow-y: auto; /* Memungkinkan container utama discroll dengan aman jika konten melimpah */
 }
 
 .main-header h1 {
-  font-size: 1.75rem;
-  color: #1a1a1a;
-  margin-bottom: 6px;
+  font-size: 1.95rem;
+  color: #111827;
+  margin-bottom: 4px;
   font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .main-header p {
-  color: #666;
-  margin-bottom: 30px;
+  color: #64748b;
+  margin-bottom: 25px;
   font-size: 0.95rem;
 }
 
-/* Grid Sistem */
+/* Grid System Layout */
 .content-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1.25fr 1fr;
   gap: 30px;
   align-items: start;
 }
@@ -53,12 +49,12 @@
   gap: 30px;
 }
 
-/* card */
+/* White Cards Configuration */
 .card {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 28px;
-  border: 1px solid #eaeaea;
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid #f1f5f9;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
 }
 
@@ -70,38 +66,30 @@
 }
 
 .card-header h3 {
-  font-size: 1.15rem;
-  color: #1a1a1a;
+  font-size: 1.2rem;
+  color: #1e293b;
   font-weight: 600;
-}
-
-.card-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
 }
 
 .card-header-flex h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  color: #1e293b;
 }
 
 .icon-circle {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
 }
 
-.bg-purple-light { background-color: #eef2ff; }
+.bg-purple-light { background-color: #eeeafe; }
 .text-purple { color: #6366f1; }
-.link-purple { color: #6366f1; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
 
-/* Form Profil */
+/* Profile Form Components */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -117,160 +105,233 @@
 .input-group label {
   display: block;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: #475569;
   margin-bottom: 8px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .input-group input, .input-group textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
   font-family: inherit;
-  color: #1f2937;
+  color: #1e293b;
   background-color: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
 }
 
 .input-group input:focus, .input-group textarea:focus {
   outline: none;
   border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.readonly-input {
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
+  border-style: dashed !important;
+  cursor: not-allowed;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .btn-save {
   background-color: #6366f1;
   color: white;
   border: none;
-  padding: 12px 28px;
-  border-radius: 10px;
+  padding: 14px 32px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
-.btn-save:hover { background-color: #4f46e5; }
+.btn-save:hover { 
+  background-color: #4f46e5; 
+  transform: translateY(-1px);
+}
 
-/* Gamification Card */
+.btn-save:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   👑 ADVANCED TEXTURED GAMIFICATION CARD SYSTEM (BRONZE, SILVER, GOLD)
+   ========================================================================== */
 .gamification-card {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   border: none;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  z-index: 1;
 }
 
-.member-badge {
+/* Corak Lapisan Vektor Abstrak (Stripes/Garis Mewah) */
+.card-pattern-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0.08;
+  background-image: repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 50%);
+  background-size: 16px 16px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Pantulan Cahaya Bulat (Glow Overlay) */
+.card-glow-element {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  top: -100px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 🥉 CORAK PRESET: BRONZE MEMBER */
+.tier-bronze {
+  background: linear-gradient(135deg, #5c2509 0%, #9a3412 50%, #c2410c 100%);
+  box-shadow: 0 8px 25px rgba(154, 52, 18, 0.3);
+}
+.tier-bronze .member-badge {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffedd5;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* 🥈 CORAK PRESET: SILVER MEMBER */
+.tier-silver {
+  background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #64748b 100%);
+  box-shadow: 0 8px 25px rgba(71, 85, 105, 0.3);
+}
+.tier-silver .card-glow-element {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+}
+.tier-silver .member-badge {
   background: rgba(255, 255, 255, 0.2);
-  padding: 6px 14px;
-  border-radius: 20px;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* 🥇 CORAK PRESET: GOLD MEMBER */
+.tier-gold {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 40%, #d97706 100%);
+  box-shadow: 0 8px 25px rgba(217, 119, 6, 0.35);
+}
+.tier-gold .card-glow-element {
+  background: radial-gradient(circle, rgba(253, 224, 71, 0.3) 0%, transparent 70%);
+}
+.tier-gold .member-badge {
+  background: #ffffff;
+  color: #78350f;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Desain Badge Tag */
+.member-badge {
+  padding: 6px 18px;
+  border-radius: 30px;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   display: inline-block;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .gamification-title {
-  margin-top: 24px;
-  font-size: 0.9rem;
-  opacity: 0.9;
+  margin-top: 28px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
 }
 
 .gamification-value {
-  font-size: 2.5rem;
-  margin: 5px 0 24px 0;
-  font-weight: 700;
+  font-size: 3rem;
+  margin: 2px 0 26px 0;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .gamification-value span {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 400;
   opacity: 0.85;
 }
 
-.progress-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+/* LEVEL PROGRESS BAR DENGAN GLOWING GRADIENT EFFECT */
+.progress-bar-bg {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
 }
 
-.progress-fill {
+.progress-fill-glow {
   height: 100%;
-  background: #f59e0b;
-  border-radius: 10px;
+  border-radius: 20px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); /* Efek animasi bar meluncur mulus */
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
 }
 
 .progress-text {
   font-size: 0.8rem;
-  opacity: 0.85;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
-/* Badge Grid */
+/* ==========================================================================
+   BADGES GRID & ANIMATIONS
+   ========================================================================== */
 .badge-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-.badge-item {
-  border: 1px solid #f3f4f6;
-  border-radius: 14px;
-  padding: 20px 16px;
-  text-align: center;
-  background-color: #fffbeb; 
-  transition: transform 0.2s;
+.badge-wrapper {
+  transition: all 0.3s ease;
 }
 
-.badge-item:hover {
-  transform: translateY(-2px);
+.badge-wrapper.locked {
+  opacity: 0.45;
+  filter: grayscale(100%);
 }
 
-.badge-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  background-color: #d97706;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  margin: 0 auto 12px auto;
+.badge-wrapper.unlocked:hover {
+  transform: translateY(-4px);
 }
 
-.badge-title {
-  font-size: 0.95rem;
-  color: #1f2937;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.badge-desc {
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-/* Banner Promo */
+/* Promo Banner Card */
 .banner-card {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.75)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
   background-size: cover;
   background-position: center;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 40px 30px;
   color: white;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   min-height: 220px;
-  border: 1px solid #eaeaea;
+  border: none;
 }
 
 .badge-gold {
@@ -279,121 +340,75 @@
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 8px;
-  display: inline-block;
 }
 
-.banner-content h3 { font-size: 1.35rem; margin-bottom: 6px; font-weight: 600; }
-.banner-content p { font-size: 0.9rem; opacity: 0.9; }
-
-/* Plan Card */
+/* Plan Card Components */
 .plan-card h3 { margin: 16px 0 8px 0; }
-.plan-card p { color: #6b7280; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+.plan-card p { color: #64748b; font-size: 0.9rem; margin-bottom: 24px; }
 .btn-outline-purple {
   width: 100%;
-  padding: 12px;
-  border: 1.5px solid #6366f1;
+  padding: 14px;
+  border: 2px solid #6366f1;
   color: #6366f1;
   background: transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-outline-purple:hover { background: #6366f1; color: white; }
+.btn-outline-purple:hover { 
+  background: #6366f1; 
+  color: white; 
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); 
+}
 
+/* Global Loading State Component */
+.profile-loading-container {
+  padding: 60px;
+  text-align: center;
+  color: #6366f1;
+  font-weight: 600;
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
 
-/* Responsive pc */
+.profile-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #6366f1;
+  border-radius: 50%;
+  animation: spinProfile 1s linear infinite;
+}
+
+@keyframes spinProfile {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
     gap: 24px;
   }
-  
-  .profile-main {
-    padding: 30px;
-  }
+  .profile-main { padding: 30px; }
 }
 
-
-/* Responsive Mobile */
 @media (max-width: 768px) {
-  .profile-layout {
-    flex-direction: column; 
-  }
-
-  .profile-sidebar {
-    width: 100%;
-    height: auto;
-    padding: 20px 20px 10px 20px;
-    border-right: none;
-    border-bottom: 1px solid #eaeaea;
-    position: relative;
-  }
-
-  .sidebar-header {
-    margin-bottom: 15px;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    gap: 6px;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .sidebar-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-item {
-    padding: 10px 16px;
-    white-space: nowrap; 
-    font-size: 0.9rem;
-  }
-
-  .btn-back {
-    display: none; 
-  }
-
-  .profile-main {
-    padding: 20px 16px;
-  }
-
-  .main-header h1 {
-    font-size: 1.4rem;
-  }
-
-  .main-header p {
-    font-size: 0.85rem;
-    margin-bottom: 20px;
-  }
-
-  .card {
-    padding: 20px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .btn-save {
-    width: 100%;
-    text-align: center;
-  }
+  .profile-layout { flex-direction: column; }
+  .profile-main { padding: 20px 16px; }
+  .form-row { grid-template-columns: 1fr; gap: 16px; }
+  .btn-save { width: 100%; }
+  .gamification-value { font-size: 2.4rem; }
 }
 
-
-/*Responsive hp layar kecil*/
 @media (max-width: 480px) {
-  
-  .badge-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .gamification-value {
-    font-size: 2rem;
-  }
+  .badge-grid { grid-template-columns: 1fr; gap: 12px; }
 }

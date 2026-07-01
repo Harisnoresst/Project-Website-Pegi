@@ -1,8 +1,9 @@
 package com.pegi.backend.entity.enums;
 
-
 public enum PaymentStatus {
-    UNPAID,
+    PENDING,
     PAID,
+    REJECTED,
+    UNPAID,
     FAILED
 }

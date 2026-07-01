@@ -20,6 +20,7 @@ public class WishlistService {
     private final BadgeService badgeService;
 
     // GET /api/wishlist
+    // GET /api/wishlist
     public List<Map<String, Object>> getWishlist(String email) {
         User user = findUserByEmail(email);
 
@@ -29,6 +30,8 @@ public class WishlistService {
             map.put("itemId", w.getItemId());
             map.put("itemType", w.getItemType());
             map.put("itemName", w.getItemName());
+            map.put("itemImage", w.getItemImage());       // ✅ baru
+            map.put("itemLocation", w.getItemLocation());  // ✅ baru
             map.put("createdAt", w.getCreatedAt());
             return map;
         }).toList();
@@ -38,20 +41,22 @@ public class WishlistService {
     public Map<String, Object> addToWishlist(String email, Map<String, Object> request) {
         User user = findUserByEmail(email);
 
-        Long itemId     = Long.valueOf(request.get("itemId").toString());
-        String itemType = (String) request.get("itemType"); // "hotel" atau "destination"
-        String itemName = (String) request.getOrDefault("itemName", "");
+        Long itemId        = Long.valueOf(request.get("itemId").toString());
+        String itemType    = (String) request.get("itemType");
+        String itemName    = (String) request.getOrDefault("itemName", "");
+        String itemImage   = (String) request.getOrDefault("itemImage", "");      // ✅ baru
+        String itemLocation = (String) request.getOrDefault("itemLocation", "");  // ✅ baru
 
         Wishlist wishlist = Wishlist.builder()
                 .user(user)
                 .itemId(itemId)
                 .itemType(itemType)
                 .itemName(itemName)
+                .itemImage(itemImage)        // ✅ baru
+                .itemLocation(itemLocation)  // ✅ baru
                 .build();
 
         wishlistRepository.save(wishlist);
-
-        // Cek dan beri badge jika memenuhi syarat
         badgeService.checkAndAwardBadges(user);
 
         Map<String, Object> response = new HashMap<>();
@@ -74,8 +79,8 @@ public class WishlistService {
         wishlistRepository.delete(wishlist);
     }
 
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
-    }
+   private User findUserByEmail(String identifier) {
+    return userRepository.findByEmailOrUsername(identifier, identifier)
+            .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + identifier));
+}
 }

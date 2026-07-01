@@ -1,6 +1,36 @@
-import api from './api';
+import axios from "axios";
 
-export const getAllPromos = async () => await api.get('/api/admin/promos');
-export const createPromo = async (data: any) => await api.post('/api/admin/promos', data);
-export const updatePromo = async (id: string, data: any) => await api.put(`/api/admin/promos/${id}`, data);
-export const deletePromo = async (id: string) => await api.delete(`/api/admin/promos/${id}`);
+const BASE_URL = "http://localhost:8080/api/promos";
+
+export interface PromoValidationResult {
+  valid: boolean;
+  message?: string;
+  promo?: {
+    id: number;
+    title: string;
+    code: string;
+    discountPercent: number;
+  };
+  discountAmount?: number;
+  finalPrice?: number;
+}
+
+export const validatePromo = async (
+  code: string,
+  category: "Hotel" | "Tiket Pesawat",
+  originalPrice: number
+): Promise<PromoValidationResult> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/validate`, {
+      code,
+      category,
+      originalPrice,
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data) {
+      return error.response.data;
+    }
+    return { valid: false, message: "Gagal menghubungi server." };
+  }
+};

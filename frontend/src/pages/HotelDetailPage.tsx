@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdLocationOn,
   MdWifi,
@@ -12,8 +13,16 @@ import {
 
 import { getHotelById } from "../services/hotelService";
 import type { HotelType } from "../types/HotelType";
+import { formatRupiah } from "../Utils/formatCurrency";
 
 import "./HotelDetailPage.css";
+
+// Helper: ambil harga termurah dari daftar rooms milik hotel.
+// HotelType tidak punya field price/priceValue sendiri, jadi dihitung dari rooms[].
+const getLowestPrice = (hotel: HotelType): number => {
+  if (!hotel.rooms || hotel.rooms.length === 0) return 0;
+  return Math.min(...hotel.rooms.map((r) => r.price));
+};
 
 const HotelDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState("");
@@ -80,7 +89,7 @@ const HotelDetailPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="hotel-detail-page">
         <div className="hotel-detail-container">
@@ -90,7 +99,9 @@ const HotelDetailPage: React.FC = () => {
 
           <section className="gallery-section">
             <div className="gallery-main">
-              <img src={selectedImage || hotel.image} alt={hotel.name} />
+              {(selectedImage || hotel.img) && (
+                <img src={selectedImage || hotel.img} alt={hotel.name} />
+              )}
             </div>
 
             <div className="gallery-grid">
@@ -179,9 +190,7 @@ const HotelDetailPage: React.FC = () => {
             {/* RIGHT */}
             <div className="booking-sidebar">
               <div className="booking-card">
-                <p className="old-price">Rp 5.250.000</p>
-
-                <h2>{hotel.price}</h2>
+                <h2>{formatRupiah(getLowestPrice(hotel))}</h2>
 
                 <span>/ malam</span>
 
@@ -242,11 +251,11 @@ const HotelDetailPage: React.FC = () => {
                   <div className="bed-info">
                     <MdKingBed />
 
-                    <span>{room.bedType}</span>
+                    <span>{room.bed}</span>
                   </div>
 
                   <div className="room-price">
-                    Rp {room.price.toLocaleString("id-ID")}
+                    {formatRupiah(room.price)}
                   </div>
 
                   <button className="room-select-btn">Pilih Kamar</button>
@@ -256,6 +265,7 @@ const HotelDetailPage: React.FC = () => {
           </section>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

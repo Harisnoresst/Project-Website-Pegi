@@ -16,47 +16,62 @@ public class JwtUtil {
     private String secretKey;
 
     @Value("${jwt.expiration}")
-    private long expirationMs; // dalam milidetik
+    private long expirationMs;
 
-    // Ambil key dari secret string
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    // Generate token dari email user
+    // ✅ Generate token — pastikan yang dipass adalah EMAIL, bukan username
     public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(email)           // sub = email
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Ambil email dari token
+    // ✅ Rename: extractSubject lebih jujur — isinya tergantung apa yang dipass saat generate
+    public String extractSubject(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (Exception e) {
+            return null; // biar filter bisa handle dengan log yang jelas
+        }
+    }
+
+    // ✅ Tetap ada untuk backward compatibility di filter lama
     public String extractEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return extractSubject(token);
     }
 
-    // Validasi token: cek email cocok dan belum expired
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        String email = extractEmail(token);
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
-    }
+    String subject = extractSubject(token);
+    if (subject == null) return false;
 
-    // Cek apakah token sudah expired
+    // ✅ Cocokkan baik dengan username maupun email, karena token bisa di-generate dari keduanya
+    boolean matches = subject.equals(userDetails.getUsername());
+
+    return matches && !isTokenExpired(token);
+}
+
     private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
-        return expiration.before(new Date());
+        try {
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            return expiration.before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 }

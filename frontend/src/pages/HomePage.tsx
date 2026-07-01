@@ -1,6 +1,11 @@
 // src/pages/HomePage.tsx
 import React, { useState, useRef, useEffect } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { getDestinations } from "../services/destinationService";
+import type { DestinationType } from "../types/DestinationType";
+import { getHotels } from "../services/hotelService";
+import type { HotelType } from "../types/HotelType";
 import {
   MdOutlineHotel,
   MdDirectionsBus,
@@ -27,18 +32,32 @@ const HomePage: React.FC = () => {
   const [adults, setAdults] = useState(1);
   const [infants, setInfants] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [partnerDate, setPartnerDate] = useState("");
+  const [transportFrom, setTransportFrom] = useState("");
+  const [transportTo, setTransportTo] = useState("");
+  const [transportDate, setTransportDate] = useState("");
 
   // State Popover Tamu & Kamar (Hotel)
   const [showHotelGuests, setShowHotelGuests] = useState(false);
   const [hotelTamu, setHotelTamu] = useState(2);
   const [hotelKamar, setHotelKamar] = useState(1);
   const hotelGuestRef = useRef<HTMLDivElement>(null);
+  const [hotelLocation, setHotelLocation] = useState("");
+  const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
+  const [hotelDate, setHotelDate] = useState("");
+  const [hotels, setHotels] = useState<HotelType[]>([]);
 
   // State Popover Kategori Destinasi
+  const partnerDestinationRef = useRef<HTMLDivElement>(null);
   const [showCategory, setShowCategory] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [destinationRegion, setDestinationRegion] = useState("Bali");
   const [destinationKeyword, setDestinationKeyword] = useState("");
+  const [partnerDestination, setPartnerDestination] = useState("");
+  const [showDestinationSuggestions, setShowDestinationSuggestions] =
+    useState(false);
+
+  const [allDestinations, setAllDestinations] = useState<DestinationType[]>([]);
 
   const [showRegion, setShowRegion] = useState(false);
 
@@ -48,6 +67,30 @@ const HomePage: React.FC = () => {
   const categoryRef = useRef<HTMLDivElement>(null);
 
   const categoriesList = ["Alam", "Budaya", "Kuliner", "Religi"];
+
+  const destinationSuggestions = allDestinations
+    .filter((destination) =>
+      destination.name.toLowerCase().includes(partnerDestination.toLowerCase()),
+    )
+    .slice(0, 5);
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      const data = await getHotels();
+      setHotels(data);
+    };
+
+    fetchHotels();
+  }, []);
+
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      const data = await getDestinations();
+      setAllDestinations(data);
+    };
+
+    fetchDestinations();
+  }, []);
 
   // Handle klik di luar untuk menutup semua popover
   useEffect(() => {
@@ -76,6 +119,13 @@ const HomePage: React.FC = () => {
       ) {
         setShowRegion(false);
       }
+      if (
+        partnerDestinationRef.current &&
+        !partnerDestinationRef.current.contains(event.target as Node)
+      ) {
+        setShowDestinationSuggestions(false);
+      }
+      setShowHotelSuggestions(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -98,9 +148,15 @@ const HomePage: React.FC = () => {
       ? "Semua Kategori"
       : selectedCategories.join(", ");
 
+  const hotelSuggestions = hotels
+    .filter((hotel) =>
+      hotel.location.toLowerCase().includes(hotelLocation.toLowerCase()),
+    )
+    .slice(0, 5);
+
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
       <div className="home-wrapper">
         {/* 1. HERO SECTION */}
         <section className="hero-section">
@@ -141,7 +197,31 @@ const HomePage: React.FC = () => {
                     type="text"
                     className="search-input"
                     placeholder="Cari kota atau hotel"
+                    value={hotelLocation}
+                    onChange={(e) => {
+                      setHotelLocation(e.target.value);
+                      setShowHotelSuggestions(true);
+                    }}
                   />
+                  {showHotelSuggestions &&
+                    hotelLocation &&
+                    hotelSuggestions.length > 0 && (
+                      <div className="hotel-location-suggestions">
+                        {hotelSuggestions.map((hotel) => (
+                          <button
+                            key={hotel.id}
+                            type="button"
+                            className="hotel-location-item"
+                            onClick={() => {
+                              setHotelLocation(hotel.location);
+                              setShowHotelSuggestions(false);
+                            }}
+                          >
+                            {hotel.location}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -151,13 +231,10 @@ const HomePage: React.FC = () => {
                   <MdDateRange className="search-icon" />
                   {/* Auto Date Picker */}
                   <input
-                    type="text"
+                    type="date"
                     className="search-input"
-                    placeholder="Pilih Tanggal"
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) =>
-                      (e.target.type = e.target.value ? "date" : "text")
-                    }
+                    value={hotelDate}
+                    onChange={(e) => setHotelDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -253,7 +330,21 @@ const HomePage: React.FC = () => {
                 )}
               </div>
 
-              <button className="btn-search">
+              <button
+                className="btn-search"
+                onClick={() => {
+                  if (!hotelLocation.trim()) {
+                    alert("Masukkan lokasi tujuan");
+                    return;
+                  }
+
+                  window.location.href =
+                    `/hotel-search?location=${encodeURIComponent(hotelLocation)}` +
+                    `&date=${encodeURIComponent(hotelDate)}` +
+                    `&guest=${hotelTamu}` +
+                    `&room=${hotelKamar}`;
+                }}
+              >
                 <MdSearch size={20} /> Cari Sekarang
               </button>
             </div>
@@ -270,6 +361,8 @@ const HomePage: React.FC = () => {
                     type="text"
                     className="search-input"
                     placeholder="Berangkat dari mana?"
+                    value={transportFrom}
+                    onChange={(e) => setTransportFrom(e.target.value)}
                   />
                 </div>
               </div>
@@ -282,6 +375,8 @@ const HomePage: React.FC = () => {
                     type="text"
                     className="search-input"
                     placeholder="Pergi ke mana?"
+                    value={transportTo}
+                    onChange={(e) => setTransportTo(e.target.value)}
                   />
                 </div>
               </div>
@@ -291,13 +386,10 @@ const HomePage: React.FC = () => {
                 <div className="search-input-wrapper">
                   <MdDateRange className="search-icon" />
                   <input
-                    type="text"
+                    type="date"
                     className="search-input"
-                    placeholder="Kapan berangkat?"
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) =>
-                      (e.target.type = e.target.value ? "date" : "text")
-                    }
+                    value={transportDate}
+                    onChange={(e) => setTransportDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -390,7 +482,12 @@ const HomePage: React.FC = () => {
                 )}
               </div>
 
-              <button className="btn-search" style={{ width: "100%" }}>
+              <button
+                className="btn-search"
+                onClick={() => {
+                  window.location.href = `/transport-search?from=${encodeURIComponent(transportFrom)}&to=${encodeURIComponent(transportTo)}&date=${encodeURIComponent(transportDate)}&adult=${adults}`;
+                }}
+              >
                 Cari Perjalanan
               </button>
             </div>
@@ -554,19 +651,49 @@ const HomePage: React.FC = () => {
 
             <div className="action-box">
               <div className="action-grid">
-                <div className="search-field">
+                <div
+                  className="search-field partner-destination-field"
+                  ref={partnerDestinationRef}
+                >
                   <label className="search-label" style={{ fontSize: "12px" }}>
                     Destinasi Tujuan
                   </label>
+
                   <div className="search-input-wrapper">
                     <MdOutlinePlace className="search-icon" size={16} />
+
                     <input
                       type="text"
                       className="search-input"
                       style={{ backgroundColor: "#fff" }}
-                      placeholder="Contoh: Labuan Bajo"
+                      placeholder="Cari destinasi tujuan..."
+                      value={partnerDestination}
+                      onChange={(e) => {
+                        setPartnerDestination(e.target.value);
+                        setShowDestinationSuggestions(true);
+                      }}
                     />
                   </div>
+
+                  {showDestinationSuggestions &&
+                    partnerDestination &&
+                    destinationSuggestions.length > 0 && (
+                      <div className="partner-destination-suggestions">
+                        {destinationSuggestions.map((destination) => (
+                          <button
+                            key={destination.id}
+                            type="button"
+                            className="partner-destination-item"
+                            onClick={() => {
+                              setPartnerDestination(destination.name);
+                              setShowDestinationSuggestions(false);
+                            }}
+                          >
+                            {destination.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                 </div>
                 <div className="search-field">
                   <label className="search-label" style={{ fontSize: "12px" }}>
@@ -575,20 +702,35 @@ const HomePage: React.FC = () => {
                   <div className="search-input-wrapper">
                     <MdDateRange className="search-icon" size={16} />
                     <input
-                      type="text"
+                      type="date"
                       className="search-input"
                       style={{ backgroundColor: "#fff" }}
-                      placeholder="Pilih Tanggal"
-                      onFocus={(e) => (e.target.type = "date")}
-                      onBlur={(e) =>
-                        (e.target.type = e.target.value ? "date" : "text")
-                      }
+                      value={partnerDate}
+                      onChange={(e) => setPartnerDate(e.target.value)}
                     />
                   </div>
                 </div>
               </div>
-              <button className="btn-partner">
-                <MdPersonAddAlt1 size={18} /> Cari Partner
+              <button
+                className="btn-partner"
+                onClick={() => {
+                  if (!partnerDestination.trim()) {
+                    alert("Pilih destinasi terlebih dahulu");
+                    return;
+                  }
+
+                  if (!partnerDate) {
+                    alert("Pilih tanggal perjalanan");
+                    return;
+                  }
+
+                  window.location.href = `/travel-partner?destination=${encodeURIComponent(
+                    partnerDestination,
+                  )}&date=${encodeURIComponent(partnerDate)}`;
+                }}
+              >
+                <MdPersonAddAlt1 size={18} />
+                Cari Partner
               </button>
             </div>
 
@@ -646,6 +788,7 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       </div>
+      <Footer />
     </>
   );
 };

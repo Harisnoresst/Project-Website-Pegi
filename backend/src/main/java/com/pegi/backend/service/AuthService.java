@@ -10,9 +10,11 @@ import com.pegi.backend.repository.UserRepository;
 import com.pegi.backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -31,20 +33,27 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailOtpService emailOtpService;
 
-    // ===== 🔥 BARU: TAHAP 1 REGISTER (Minta OTP Awal) =====
-    // Berfungsi sebagai gembok depan untuk memblokir email yang sudah terdaftar
+    // Helper method buat nyari user dari identifier (email / username)
+    private User getUserByIdentifier(String identifier) {
+        return userRepository.findByEmailOrUsername(identifier, identifier)
+                .orElseThrow(() -> new RuntimeException("Akun tidak ditemukan!"));
+    }
+
+    // ===== TAHAP 1 REGISTER (Minta OTP Awal) =====
     public Map<String, Object> requestOtp(Map<String, String> request) {
         String email = request.get("email");
+        String username = request.get("username");
 
-        // 1. Validasi utama: Jika email sudah ada di DB, stop dan lempat error!
+        // Validasi Email & Username
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email sudah terdaftar! Harap gunakan email lain.");
         }
+        if (username != null && userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username sudah digunakan! Harap cari username lain.");
+        }
 
-        // 2. Jika aman/belum terdaftar, generate OTP 6 digit
         String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
 
-        // 3. Simpan OTP ke database (berlaku 5 menit)
         OtpVerification otp = OtpVerification.builder()
                 .email(email)
                 .otpCode(otpCode)
@@ -52,167 +61,202 @@ public class AuthService {
                 .build();
         otpVerificationRepository.save(otp);
 
-        // 4. Kirim kode OTP pendaftaran ke email user
         emailOtpService.sendOtpEmail(email, otpCode);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "otp_sent");
-        response.put("message", "Kode OTP pendaftaran telah dikirim ke email kamu, silakan verifikasi");
+        response.put("message", "Kode OTP pendaftaran telah dikirim ke email kamu");
         response.put("email", email);
         return response;
     }
 
-    // ===== REGISTER ===== (tidak berubah)
+    // ===== REGISTER (Ditambah field baru) =====
+    @Transactional
     public Map<String, Object> register(Map<String, String> request) {
         String email = request.get("email");
-        String name  = request.get("name");
+        String username = request.get("username");
+        String fullName = request.get("fullName");
+        String name = request.get("name");
+        String phone = request.get("phone");
         String password = request.get("password");
+        String otpCode = request.get("otp"); // Nangkep OTP dari frontend
 
-        if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email sudah terdaftar");
-        }
+        if (userRepository.existsByEmail(email)) throw new RuntimeException("Email sudah terdaftar");
+        if (userRepository.existsByUsername(username)) throw new RuntimeException("Username sudah digunakan");
 
-        Role userRole = roleRepository.findByName(RoleType.USER)
-                .orElseThrow(() -> new RuntimeException("Role USER tidak ditemukan. Jalankan DataSeeder dulu!"));
-
-        User user = User.builder()
-                .name(name)
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .role(userRole)
-                .build();
-
-        userRepository.save(user);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "Registrasi berhasil");
-        response.put("email", email);
-        return response;
-    }
-
-    // ===== LOGIN — TAHAP 1: validasi password, cek ADMIN bypass, atau kirim OTP ===== (tidak berubah)
-    public Map<String, Object> login(Map<String, String> request) {
-        String email    = request.get("email");
-        String password = request.get("password");
-
-        try {
-            // Validasi email + password
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
-        } catch (Exception e) {
-            // INI BAKAL NGE-PRINT ALASAN ASLINYA KE TERMINAL JAVA LU
-            System.err.println("!!! GAGAL LOGIN BRO !!! Alasan dari Java: " + e.getMessage());
-            throw new RuntimeException("Gagal Otentikasi: " + e.getMessage());
-        }
-
-        // Ambil data user dari database untuk mengecek jabatannya (Role)
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
-
-        // Cek apakah user adalah ADMIN
-        if (user.getRole().getName() == RoleType.ADMIN) {
-            // JALUR TOL: Kalau ADMIN, langsung kasih JWT Token tanpa OTP
-            String token = jwtUtil.generateToken(email);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "Login Admin Berhasil");
-            response.put("token", token);
-            response.put("name", user.getName());
-            response.put("email", user.getEmail());
-            response.put("role", user.getRole().getName().name());
-            return response;
-        }
-
-        // JALUR REGULER: Kalau bukan ADMIN (USER BIASA), lanjut kirim OTP
-        // Generate kode OTP 6 digit acak
-        String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
-
-        // Simpan OTP ke database, berlaku 5 menit
-        OtpVerification otp = OtpVerification.builder()
-                .email(email)
-                .otpCode(otpCode)
-                .expiresAt(LocalDateTime.now().plusMinutes(5))
-                .build();
-        otpVerificationRepository.save(otp);
-
-        // Kirim kode OTP ke email user
-        emailOtpService.sendOtpEmail(email, otpCode);
-
-        // Response: BELUM kasih token, baru kasih info OTP terkirim
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "otp_sent");
-        response.put("message", "Kode OTP telah dikirim ke email kamu, silakan verifikasi");
-        response.put("email", email);
-        return response;
-    }
-
-    // ===== LOGIN — TAHAP 2: verifikasi OTP, baru kasih token ===== (tidak berubah)
-    public Map<String, Object> verifyOtp(Map<String, String> request) {
-        String email   = request.get("email");
-        
-        // PERBAIKAN DI SINI: Sesuaikan key dengan yang dikirim React ("otp")
-        String otpCode = request.get("otp"); 
-
-        // Ambil OTP terbaru milik email ini yang belum diverifikasi
+        // 1. VALIDASI OTP DULU SEBELUM BIKIN USER
         OtpVerification otp = otpVerificationRepository
                 .findTopByEmailAndVerifiedFalseOrderByCreatedAtDesc(email)
-                .orElseThrow(() -> new RuntimeException(
-                        "Kode OTP tidak ditemukan, silakan login ulang"
-                ));
+                .orElseThrow(() -> new RuntimeException("Kode OTP tidak ditemukan"));
 
-        // Cek apakah sudah expired (lebih dari 5 menit)
         if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Kode OTP sudah expired, silakan login ulang");
+            throw new RuntimeException("Kode OTP kedaluwarsa");
         }
 
-        // Cek apakah kode yang diinput cocok
         if (!otp.getOtpCode().equals(otpCode)) {
             throw new RuntimeException("Kode OTP salah");
         }
 
-        // Tandai OTP sudah dipakai supaya tidak bisa dipakai ulang
+        // 2. SAVE USER KE DATABASE
+        Role userRole = roleRepository.findByName(RoleType.USER)
+                .orElseThrow(() -> new RuntimeException("Role USER tidak ditemukan. Jalankan DataSeeder dulu!"));
+
+        User user = User.builder()
+                .fullName(fullName)
+                .username(username)
+                .name(name)
+                .email(email)
+                .phone(phone)
+                .password(passwordEncoder.encode(password))
+                .role(userRole)
+                .isVerified(true) // Lolos verifikasi OTP
+                .build();
+
+        userRepository.save(user);
+
+        // Tandai OTP sudah terpakai
         otp.setVerified(true);
         otpVerificationRepository.save(otp);
 
-        // Baru sekarang generate JWT token
-        String token = jwtUtil.generateToken(email);
+        // 3. GENERATE TOKEN BIAR LANGSUNG LOGIN
+        String token = jwtUtil.generateToken(user.getUsername());
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Registrasi berhasil");
+        response.put("token", token); // 👈 Ini penting buat frontend!
+        response.put("name", user.getName());
+        response.put("username", user.getUsername());
+        response.put("role", user.getRole().getName().name());
+        
+        return response;
+    }
+
+    // ===== LOGIN — TAHAP 1: Validasi & Kirim OTP =====
+    public Map<String, Object> login(Map<String, String> request) {
+        String identifier = request.get("identifier"); // Bisa email atau username
+        String password = request.get("password");
+
+        // Cari user aslinya biar tau email yang bener apa
+        User user = getUserByIdentifier(identifier);
+
+        try {
+            // Spring Security authenticate pakai field "username" di entitas User
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), password)
+            );
+        } catch (Exception e) {
+            System.err.println("!!! GAGAL LOGIN BRO !!! Alasan dari Java: " + e.getMessage());
+            throw new BadCredentialsException("Email atau Password salah!");
+        }
+
+        if (user.getRole().getName() == RoleType.ADMIN) {
+            String token = jwtUtil.generateToken(user.getUsername());
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("token", token);
+            response.put("role", "admin");
+            return response;
+        }
+
+        // Kalau USER biasa, kirim OTP ke EMAIL ASLI nya (bukan ke identifier kalau dia ngetik username)
+        String realEmail = user.getEmail();
+        String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
+
+        OtpVerification otp = OtpVerification.builder()
+                .email(realEmail)
+                .otpCode(otpCode)
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpVerificationRepository.save(otp);
+
+        emailOtpService.sendOtpEmail(realEmail, otpCode);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "otp_sent");
+        response.put("message", "Kode OTP dikirim ke email");
+        return response;
+    }
+
+    // ===== LOGIN — TAHAP 2: Verifikasi OTP =====
+    public Map<String, Object> verifyOtp(Map<String, String> request) {
+        String identifier = request.get("identifier");
+        String otpCode = request.get("otp"); 
+
+        User user = getUserByIdentifier(identifier);
+        String realEmail = user.getEmail(); // Verifikasi pakai email aslinya
+
+        OtpVerification otp = otpVerificationRepository
+                .findTopByEmailAndVerifiedFalseOrderByCreatedAtDesc(realEmail)
+                .orElseThrow(() -> new RuntimeException("Kode OTP tidak ditemukan"));
+
+        if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Kode OTP kedaluwarsa");
+        }
+
+        if (!otp.getOtpCode().equals(otpCode)) {
+            throw new RuntimeException("Kode OTP salah");
+        }
+
+        otp.setVerified(true);
+        otpVerificationRepository.save(otp);
+
+        // Generate token pakai username
+        String token = jwtUtil.generateToken(user.getUsername());
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("token", token);
         response.put("name", user.getName());
-        response.put("email", user.getEmail());
+        response.put("username", user.getUsername());
         response.put("role", user.getRole().getName().name());
         return response;
     }
 
-    // ===== RESEND OTP ===== (tidak berubah)
+    // ===== RESEND OTP =====
     public Map<String, Object> resendOtp(Map<String, String> request) {
-        String email = request.get("email");
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        String identifier = request.get("identifier");
+        
+        User user = getUserByIdentifier(identifier);
+        String realEmail = user.getEmail();
 
         String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
 
         OtpVerification otp = OtpVerification.builder()
-                .email(email)
+                .email(realEmail)
                 .otpCode(otpCode)
                 .expiresAt(LocalDateTime.now().plusMinutes(5))
                 .build();
         otpVerificationRepository.save(otp);
 
-        emailOtpService.sendOtpEmail(email, otpCode);
+        emailOtpService.sendOtpEmail(realEmail, otpCode);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "otp_sent");
-        response.put("message", "Kode OTP baru telah dikirim ulang ke email kamu");
         return response;
     }
+    // ===== PINTU BELAKANG KHUSUS ADMIN (HARDCODE) =====
+    // ===== PINTU BELAKANG KHUSUS ADMIN (HARDCODE) =====
+public Map<String, Object> adminDirectLogin(Map<String, String> request) {
+    String identifier = request.get("identifier");
+    String password = request.get("password");
+
+    if ("admin@pegig.com".equals(identifier) && "admin123".equals(password)) {
+        
+        // ✅ Cari user admin di database agar dapat username aslinya
+        User adminUser = userRepository.findByEmailOrUsername(identifier, identifier)
+                .orElseThrow(() -> new BadCredentialsException("Akun admin tidak ditemukan di database"));
+
+        // ✅ Generate token pakai username, konsisten dengan login() biasa
+        String token = jwtUtil.generateToken(adminUser.getUsername());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("name", adminUser.getName() != null ? adminUser.getName() : "Admin Pegi");
+        response.put("role", "admin");
+        return response;
+    }
+
+    throw new BadCredentialsException("Kredensial Admin Salah!");
+}
 }

@@ -35,4 +35,7 @@ public class Wishlist {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    private String itemImage;
+    private String itemLocation;
 }

@@ -65,4 +65,30 @@ public class GroupController {
         Map<String, Object> result = groupService.joinGroup(email, id);
         return ResponseEntity.ok(result);
     }
+
+    // GET /api/groups/highlight
+    @GetMapping("/highlight")
+    public ResponseEntity<?> getHighlight(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        Map<String, Object> result = groupService.getHighlight(email);
+
+        if (result == null) {
+            return ResponseEntity.noContent().build(); // 204 — frontend abaikan karena sudah ada try/catch
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    // GET /api/groups/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getGroupDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(groupService.getGroupDetail(id));
+    }
+
+    // GET /api/groups/{id}/members
+    @GetMapping("/{id}/members")
+    public ResponseEntity<?> getGroupMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(groupService.getGroupMembers(id));
+    }
 }

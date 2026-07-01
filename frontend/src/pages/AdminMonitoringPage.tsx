@@ -4,6 +4,8 @@ import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import StatistikChart from "../components/StatistikChart";
 import { getMonitoringStats } from "../services/adminService";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import "./AdminMonitoringPage.css";
 
 // --- INTERFACE DIBERSIHKAN (Hanya yang digunakan) ---
@@ -70,8 +72,120 @@ const AdminMonitoringPage: React.FC = () => {
     return `${d.getDate().toString().padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
   };
 
+  // --- EXPORT PDF BERUPA TABEL RINGKASAN (TANPA CHART) ---
   const handleExportPDF = () => {
-    window.print();
+    if (!stats) {
+      alert("Data belum siap, tunggu sebentar lalu coba lagi.");
+      return;
+    }
+
+    const doc = new jsPDF("p", "mm", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // --- HEADER LAPORAN ---
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Laporan Monitoring Sistem Pegi", pageWidth / 2, 18, { align: "center" });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    doc.text(
+      `Periode: ${formatDate(startDate)} - ${formatDate(endDate)}`,
+      pageWidth / 2,
+      25,
+      { align: "center" }
+    );
+    doc.text(
+      `Dicetak pada: ${new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}`,
+      pageWidth / 2,
+      30,
+      { align: "center" }
+    );
+
+    let currentY = 40;
+
+    // --- TABEL 1: RINGKASAN KPI ---
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Ringkasan Performa", 14, currentY);
+    currentY += 4;
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [["Metrik", "Nilai"]],
+      body: [
+        ["Pendapatan Terpilih", stats.kpi.revenue],
+        ["Total Booking", stats.kpi.totalBookings.toLocaleString("id-ID")],
+        ["Total Pengguna Aktif", stats.kpi.totalUsers.toLocaleString("id-ID")],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [67, 24, 255] }, // ungu sesuai tema admin
+      styles: { fontSize: 10 },
+      margin: { left: 14, right: 14 },
+    });
+
+    // @ts-ignore - lastAutoTable disediakan oleh plugin autoTable di runtime
+    currentY = doc.lastAutoTable.finalY + 12;
+
+    // --- TABEL 2: RANKING HOTEL TERATAS ---
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Ranking Hotel Teratas", 14, currentY);
+    currentY += 4;
+
+    if (stats.topHotels.length > 0) {
+      autoTable(doc, {
+        startY: currentY,
+        head: [["#", "Nama Hotel", "Lokasi", "Pendapatan"]],
+        body: stats.topHotels.map((h, i) => [
+          (i + 1).toString(),
+          h.name,
+          h.location,
+          h.revenue,
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [67, 24, 255] },
+        styles: { fontSize: 10 },
+        margin: { left: 14, right: 14 },
+      });
+      // @ts-ignore
+      currentY = doc.lastAutoTable.finalY + 12;
+    } else {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(120);
+      doc.text("Belum ada transaksi hotel pada periode ini.", 14, currentY + 4);
+      currentY += 14;
+    }
+
+    // --- TABEL 3: STATISTIK KERAMAIAN ---
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0);
+    doc.text("Statistik Tingkat Keramaian", 14, currentY);
+    currentY += 4;
+
+    if (stats.crowdLevels.length > 0) {
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Lokasi Destinasi", "Tingkat Keramaian"]],
+        body: stats.crowdLevels.map((c) => [c.location, `${c.percentage}%`]),
+        theme: "grid",
+        headStyles: { fillColor: [67, 24, 255] },
+        styles: { fontSize: 10 },
+        margin: { left: 14, right: 14 },
+      });
+    } else {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(120);
+      doc.text("Tidak ada data keramaian destinasi.", 14, currentY + 4);
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    doc.save(`Laporan-Monitoring-Pegi-${today}.pdf`);
   };
 
   return (
@@ -111,7 +225,7 @@ const AdminMonitoringPage: React.FC = () => {
               </div>
 
               <button className="btn-primary" onClick={handleExportPDF}>
-                <FaFileDownload /> Export PDF
+                <FaFileDownload /> Cetak
               </button>
             </div>
           </div>

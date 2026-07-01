@@ -2,8 +2,7 @@ package com.pegi.backend.controller;
 
 import com.pegi.backend.entity.Hotel;
 import com.pegi.backend.service.HotelService;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +10,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/hotels")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class HotelController {
 
-    @Autowired
-    private HotelService hotelService;
+    private final HotelService hotelService;
 
     @GetMapping
     public List<Hotel> getAllHotels() {
@@ -22,12 +22,9 @@ public class HotelController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Hotel> getHotelById(@PathVariable Long Id) {
-        return hotelService.getHotelById(Id)
+    public ResponseEntity<Hotel> getHotelById(@PathVariable Long id) {
+        return hotelService.getHotelById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 }
-    
-    
-

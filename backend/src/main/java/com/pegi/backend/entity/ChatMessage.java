@@ -26,8 +26,12 @@ public class ChatMessage {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String message;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    // "text" atau "image"
+    @Builder.Default
+    private String type = "text";
 
     @CreationTimestamp
     private LocalDateTime sentAt;

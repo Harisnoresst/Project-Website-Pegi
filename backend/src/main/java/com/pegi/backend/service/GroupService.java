@@ -10,6 +10,7 @@ import com.pegi.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +30,9 @@ public class GroupService {
 
         String name        = (String) request.get("name");
         String description = (String) request.getOrDefault("description", "");
-        String typeStr     = (String) request.getOrDefault("groupType", "PUBLIC");
+        String typeStr      = (String) request.getOrDefault("groupType", "PUBLIC");
         GroupType groupType = GroupType.valueOf(typeStr.toUpperCase());
 
-        // Buat grup baru
         Group group = Group.builder()
                 .name(name)
                 .description(description)
@@ -41,7 +41,6 @@ public class GroupService {
                 .build();
         groupRepository.save(group);
 
-        // Otomatis jadikan pembuat sebagai ADMIN grup
         GroupMember adminMember = GroupMember.builder()
                 .group(group)
                 .user(creator)
@@ -49,7 +48,6 @@ public class GroupService {
                 .build();
         groupMemberRepository.save(adminMember);
 
-        // Cek badge setelah gabung grup
         badgeService.checkAndAwardBadges(creator);
 
         Map<String, Object> response = new HashMap<>();
@@ -57,32 +55,33 @@ public class GroupService {
         response.put("message", "Grup berhasil dibuat");
         response.put("groupId", group.getId());
         response.put("groupName", group.getName());
+        response.put("id", group.getId());
+        response.put("name", group.getName());
         return response;
     }
 
     // GET /api/groups
-    public List<Map<String, Object>> getGroups(String email) {
-        // Tampilkan semua grup PUBLIC + grup yang diikuti user
-        User user = findUserByEmail(email);
+    // GET /api/groups
+        public List<Map<String, Object>> getGroups(String email) {
+            User user = findUserByEmail(email);
 
-        List<Long> myGroupIds = groupMemberRepository.findByUser(user)
-                .stream().map(gm -> gm.getGroup().getId()).toList();
+            List<Long> myGroupIds = groupMemberRepository.findByUser(user)
+                    .stream().map(gm -> gm.getGroup().getId()).toList();
 
-        return groupRepository.findAll().stream()
-                .filter(g -> g.getGroupType() == GroupType.PUBLIC
-                          || myGroupIds.contains(g.getId()))
-                .map(g -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", g.getId());
-                    map.put("name", g.getName());
-                    map.put("description", g.getDescription());
-                    map.put("groupType", g.getGroupType().name());
-                    map.put("creatorName", g.getCreator().getName());
-                    map.put("isMember", myGroupIds.contains(g.getId()));
-                    map.put("createdAt", g.getCreatedAt());
-                    return map;
-                }).toList();
-    }
+            return groupRepository.findAll().stream()
+                    .filter(g -> myGroupIds.contains(g.getId()))   // <-- hanya grup yang diikuti
+                    .map(g -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("id", g.getId());
+                        map.put("name", g.getName());
+                        map.put("description", g.getDescription());
+                        map.put("groupType", g.getGroupType().name());
+                        map.put("creatorName", g.getCreator().getName());
+                        map.put("isMember", true);
+                        map.put("createdAt", g.getCreatedAt());
+                        return map;
+                    }).toList();
+        }
 
     // POST /api/groups/{id}/invite
     public Map<String, Object> inviteToGroup(String email, Long groupId,
@@ -90,7 +89,6 @@ public class GroupService {
         User inviter = findUserByEmail(email);
         Group group  = findGroupById(groupId);
 
-        // Hanya anggota grup yang boleh undang
         if (!groupMemberRepository.existsByGroupAndUser(group, inviter)) {
             throw new RuntimeException("Kamu bukan anggota grup ini");
         }
@@ -99,7 +97,6 @@ public class GroupService {
         User invitedUser = userRepository.findByEmail(invitedEmail)
                 .orElseThrow(() -> new RuntimeException("User yang diundang tidak ditemukan"));
 
-        // Cek apakah sudah menjadi anggota
         if (groupMemberRepository.existsByGroupAndUser(group, invitedUser)) {
             throw new RuntimeException("User sudah menjadi anggota grup ini");
         }
@@ -124,12 +121,10 @@ public class GroupService {
         User user   = findUserByEmail(email);
         Group group = findGroupById(groupId);
 
-        // Hanya grup PUBLIC yang bisa dimasuki langsung
         if (group.getGroupType() == GroupType.PRIVATE) {
             throw new RuntimeException("Grup ini PRIVATE, kamu harus diundang terlebih dahulu");
         }
 
-        // Cek apakah sudah menjadi anggota
         if (groupMemberRepository.existsByGroupAndUser(group, user)) {
             throw new RuntimeException("Kamu sudah menjadi anggota grup ini");
         }
@@ -149,13 +144,181 @@ public class GroupService {
         return response;
     }
 
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+    private User findUserByEmail(String identifier) {
+        return userRepository.findByEmailOrUsername(identifier, identifier)
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + identifier));
     }
 
     private Group findGroupById(Long id) {
         return groupRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Grup tidak ditemukan"));
+    }
+
+    public Map<String, Object> getHighlight(String email) {
+        User user = findUserByEmail(email);
+
+        List<Long> myGroupIds = groupMemberRepository.findByUser(user)
+                .stream().map(gm -> gm.getGroup().getId()).toList();
+
+        Group highlightGroup = groupRepository.findAll().stream()
+                .filter(g -> myGroupIds.contains(g.getId()) && g.getGroupType() == GroupType.PRIVATE)
+                .findFirst()
+                .orElse(null);
+
+        if (highlightGroup == null) {
+            return null;
+        }
+
+        List<GroupMember> members = groupMemberRepository.findByGroup(highlightGroup);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("title", highlightGroup.getName());
+        response.put("status", "Mendatang");
+        response.put("countdown", 7);
+        response.put("location", highlightGroup.getDescription());
+        response.put("img", "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80");
+        response.put("avatars", members.stream()
+                .limit(3)
+                .map(m -> m.getUser().getAvatar())
+                .filter(a -> a != null)
+                .toList());
+        response.put("extraMembers", Math.max(0, members.size() - 3));
+        return response;
+    }
+
+    // GET /api/groups/{id}
+    public Map<String, Object> getGroupDetail(Long groupId) {
+        Group group = findGroupById(groupId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", group.getId().toString());
+        response.put("title", group.getName());
+        response.put("status", group.getGroupType() == GroupType.PUBLIC ? "Aktif" : "Mendatang");
+        response.put("location", group.getDescription());
+        response.put("date", group.getCreatedAt().toLocalDate().toString());
+        return response;
+    }
+
+    // GET /api/groups/{id}/members
+    public List<Map<String, Object>> getGroupMembers(Long groupId) {
+        Group group = findGroupById(groupId);
+        List<GroupMember> members = groupMemberRepository.findByGroup(group);
+
+        return members.stream().map(gm -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", gm.getUser().getId());
+            map.put("name", gm.getUser().getName());
+            // Format "Role / Subtitle" sesuai ekspektasi frontend (role.split(" / "))
+            String roleLabel = "ADMIN".equals(gm.getMemberRole()) ? "Ketua Grup" : "Anggota";
+            map.put("role", roleLabel + " / " + (gm.getUser().getEmail() != null ? gm.getUser().getEmail() : "-"));
+            map.put("avatar", gm.getUser().getAvatar());
+            map.put("isOnline", false); // placeholder, belum ada sistem presence
+            map.put("status", "Belum Bayar"); // placeholder, belum terhubung ke status pembayaran riil
+            return map;
+        }).toList();
+    }
+
+    // ============================
+    // ====== ADMIN ENDPOINTS ======
+    // ============================
+
+    // GET /api/admin/groups — list semua grup untuk admin dashboard
+    public List<Map<String, Object>> getAllGroupsForAdmin() {
+        return groupRepository.findAll().stream().map(g -> {
+            List<GroupMember> members = groupMemberRepository.findByGroup(g);
+            User leader = g.getCreator();
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", g.getId().toString());
+            map.put("name", g.getName());
+            map.put("createdAt", g.getCreatedAt() != null ? g.getCreatedAt().toLocalDate().toString() : "-");
+            map.put("img", "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=150&q=80");
+            map.put("leaderName", leader != null ? leader.getName() : "-");
+            map.put("leaderTier", "Member");
+            map.put("currentMembers", members.size());
+            map.put("maxMembers", 20);
+            map.put("destination", g.getDescription() != null ? g.getDescription() : "-");
+            map.put("status", g.getGroupType() == GroupType.PUBLIC ? "Aktif" : "Menunggu");
+            return map;
+        }).toList();
+    }
+
+    // POST /api/admin/groups
+    public Map<String, Object> createGroupAsAdmin(String email, Map<String, Object> data) {
+        User creator = findUserByEmail(email);
+
+        String name = (String) data.get("name");
+        String destination = (String) data.getOrDefault("destination", "");
+        String statusLabel = (String) data.getOrDefault("status", "Menunggu");
+        GroupType type = "Aktif".equals(statusLabel) ? GroupType.PUBLIC : GroupType.PRIVATE;
+
+        Group group = Group.builder()
+                .name(name)
+                .description(destination)
+                .groupType(type)
+                .creator(creator)
+                .build();
+        groupRepository.save(group);
+
+        GroupMember adminMember = GroupMember.builder()
+                .group(group)
+                .user(creator)
+                .memberRole("ADMIN")
+                .build();
+        groupMemberRepository.save(adminMember);
+
+        return toAdminMap(group);
+    }
+
+    // PUT /api/admin/groups/{id}
+    public Map<String, Object> updateGroupAsAdmin(Long groupId, Map<String, Object> data) {
+        Group group = findGroupById(groupId);
+
+        if (data.get("name") != null) group.setName((String) data.get("name"));
+        if (data.get("destination") != null) group.setDescription((String) data.get("destination"));
+        if (data.get("status") != null) {
+            String statusLabel = (String) data.get("status");
+            group.setGroupType("Aktif".equals(statusLabel) ? GroupType.PUBLIC : GroupType.PRIVATE);
+        }
+        groupRepository.save(group);
+        return toAdminMap(group);
+    }
+
+    // DELETE /api/admin/groups/{id}
+    public void deleteGroupAsAdmin(Long groupId) {
+        Group group = findGroupById(groupId);
+        groupRepository.delete(group);
+    }
+
+    private Map<String, Object> toAdminMap(Group g) {
+        List<GroupMember> members = groupMemberRepository.findByGroup(g);
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", g.getId().toString());
+        map.put("name", g.getName());
+        map.put("createdAt", g.getCreatedAt() != null ? g.getCreatedAt().toLocalDate().toString() : "-");
+        map.put("img", "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=150&q=80");
+        map.put("leaderName", g.getCreator() != null ? g.getCreator().getName() : "-");
+        map.put("leaderTier", "Member");
+        map.put("currentMembers", members.size());
+        map.put("maxMembers", 20);
+        map.put("destination", g.getDescription() != null ? g.getDescription() : "-");
+        map.put("status", g.getGroupType() == GroupType.PUBLIC ? "Aktif" : "Menunggu");
+        return map;
+    }
+
+    // GET /api/admin/activities — aktivitas terbaru (gabungan member yang join semua grup)
+    public List<Map<String, Object>> getRecentActivities() {
+        return groupMemberRepository.findAll().stream()
+                .sorted(Comparator.comparing(GroupMember::getJoinedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(10)
+                .map(gm -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", gm.getId().toString());
+                    map.put("userName", gm.getUser().getName());
+                    map.put("groupName", gm.getGroup().getName());
+                    map.put("time", gm.getJoinedAt() != null ? gm.getJoinedAt().toString() : "-");
+                    return map;
+                }).toList();
     }
 }

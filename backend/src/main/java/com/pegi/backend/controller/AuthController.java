@@ -16,49 +16,51 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
         Map<String, Object> response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // POST /api/auth/login
-    // TAHAP 1: validasi email+password, lalu kirim OTP ke email
-    // Response BELUM berisi token JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         Map<String, Object> response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/auth/verify-otp
-    // TAHAP 2: user input kode OTP dari email, baru dapat token JWT
+    // 🚀 INI PINTU BARU KHUSUS ADMIN (BYPASS OTP)
+    @PostMapping("/admin-login")
+    public ResponseEntity<?> adminDirectLogin(@RequestBody Map<String, String> request) {
+        try {
+            // Langsung oper ke AuthService
+            Map<String, Object> response = authService.adminDirectLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
-        // request berisi: email, otpCode
         Map<String, Object> response = authService.verifyOtp(request);
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/auth/resend-otp
-    // Kirim ulang kode OTP baru kalau yang lama expired/tidak diterima
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOtp(@RequestBody Map<String, String> request) {
-        // request berisi: email
         Map<String, Object> response = authService.resendOtp(request);
         return ResponseEntity.ok(response);
     }
 
-   
     @PostMapping("/request-otp")
     public ResponseEntity<?> requestOtp(@RequestBody Map<String, String> request) {
         try {
             Map<String, Object> response = authService.requestOtp(request);
             return ResponseEntity.ok(response);
-            
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("sudah terdaftar")) {
+            if (e.getMessage() != null && (e.getMessage().contains("terdaftar") || e.getMessage().contains("digunakan"))) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
                         "status", "error",
                         "message", e.getMessage()
@@ -71,7 +73,6 @@ public class AuthController {
         }
     }
 
-    // POST /api/auth/logout
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of(

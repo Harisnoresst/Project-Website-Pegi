@@ -1,51 +1,58 @@
-// src/context/TransactionContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import NotificationPopup from '../components/NotificationPopup';
-import { getPayments, updatePaymentStatus } from '../services/adminService'; 
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { getAllPayments } from "../services/adminService";
 
-interface TransactionContextType {
-  transactions: any[];
-  setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
-  isNotifOpen: boolean;
-  setIsNotifOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  refreshPayments: () => void;
+interface Transaction {
+  id: string;
+  txId: string;
+  customerName: string;
+  serviceType: "Hotel" | "Destinasi" | "Transportasi" | "Grup Wisata";
+  serviceName: string;
+  amount: string;
+  date: string;
+  status: "Menunggu" | "Berhasil" | "Ditolak";
+  proofImg: string;
+  isSplitBill?: boolean;
+  totalGroupBill?: string;
+  splitCount?: number;
 }
 
-const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
+interface TransactionContextType {
+  transactions: Transaction[];
+  isLoading: boolean;
+  refreshPayments: () => Promise<void>;
+}
+
+const TransactionContext = createContext<TransactionContextType>({
+  transactions: [],
+  isLoading: true,
+  refreshPayments: async () => {},
+});
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPayments = async () => {
+  const refreshPayments = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const response = await getPayments();
-      setTransactions(response.data); 
+      const response = await getAllPayments();
+      setTransactions(response.data);
     } catch (error) {
-      console.error("Gagal mengambil data transaksi dari database:", error);
+      console.error("Gagal mengambil data transaksi:", error);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchPayments();
   }, []);
 
-  const pendingTransactions = transactions.filter(t => t.status === 'Menunggu');
+  useEffect(() => {
+    refreshPayments();
+  }, [refreshPayments]);
 
   return (
-    <TransactionContext.Provider value={{ transactions, setTransactions, isNotifOpen, setIsNotifOpen, refreshPayments: fetchPayments }}>
+    <TransactionContext.Provider value={{ transactions, isLoading, refreshPayments }}>
       {children}
-      <NotificationPopup 
-        isOpen={isNotifOpen} 
-        onClose={() => setIsNotifOpen(false)} 
-        notifications={pendingTransactions}
-      />
     </TransactionContext.Provider>
   );
 };
 
-export const useTransaction = () => {
-  const context = useContext(TransactionContext);
-  if (!context) throw new Error("useTransaction harus digunakan di dalam TransactionProvider");
-  return context;
-};
+export const useTransaction = () => useContext(TransactionContext);

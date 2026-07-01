@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaStar, FaMapMarkerAlt, FaUtensils, FaSwimmingPool, FaSpa, FaEdit, FaTrash, FaWifi, FaDumbbell } from "react-icons/fa";
+import { FaPlus, FaStar, FaMapMarkerAlt, FaUtensils, FaSwimmingPool, FaEdit, FaTrash, FaWifi, FaDumbbell } from "react-icons/fa";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import { getAllHotels, createHotel, updateHotel, deleteHotel, uploadImage } from "../services/adminService";
@@ -9,6 +9,7 @@ interface RoomType {
   id: string;
   name: string;
   bed: string;
+  image: string;
   price: number;
 }
 
@@ -18,7 +19,7 @@ interface Hotel {
   category: string;
   location: string;
   rating: number;
-  rooms: number;
+  totalRooms: number;
   restoCount?: number;
   facilities?: string[];
   img: string;
@@ -29,14 +30,11 @@ interface Hotel {
 
 const AdminHotelPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
-  // STATE DATA UTAMA
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
 
-  // --- STATE PAGINATION ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -63,14 +61,12 @@ const AdminHotelPage: React.FC = () => {
     fetchHotels();
   }, []);
 
-  // Reset halaman ke 1 saat admin mengetik kata kunci pencarian
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
   const filteredHotels = hotels.filter((hotel) => hotel.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // --- LOGIKA PAGINATION ---
   const totalPages = Math.ceil(filteredHotels.length / itemsPerPage);
   const currentTableData = filteredHotels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -80,7 +76,7 @@ const AdminHotelPage: React.FC = () => {
       name: "",
       category: "",
       location: "",
-      rooms: 0,
+      totalRooms: 0,
       rating: 0,
       restoCount: 0,
       facilities: [],
@@ -152,7 +148,7 @@ const AdminHotelPage: React.FC = () => {
   };
 
   const handleAddRoomType = () => {
-    const newRoom: RoomType = { id: Date.now().toString(), name: "", bed: "", price: 0 };
+    const newRoom: RoomType = { id: Date.now().toString(), name: "", bed: "", image: "", price: 0 };
     setFormData({ ...formData, roomTypes: [...(formData.roomTypes || []), newRoom] });
   };
 
@@ -175,22 +171,27 @@ const AdminHotelPage: React.FC = () => {
 
   const getFacilityIcon = (facility: string) => {
     switch (facility) {
-      case "Kolam Renang":
+      case "pool":
         return <FaSwimmingPool />;
-      case "Spa & Wellness":
-        return <FaSpa />;
-      case "Fine Dining":
+      case "restaurant":
         return <FaUtensils />;
-      case "WiFi Gratis":
+      case "wifi":
         return <FaWifi />;
-      case "Pusat Kebugaran":
+      case "gym":
         return <FaDumbbell />;
       default:
         return <FaStar />;
     }
   };
 
-  const availableFacilitiesList = ["Kolam Renang", "Spa & Wellness", "Fine Dining", "WiFi Gratis", "Pusat Kebugaran"];
+  const facilityLabelMap: Record<string, string> = {
+    wifi: "WiFi Gratis",
+    pool: "Kolam Renang",
+    restaurant: "Restoran",
+    gym: "Pusat Kebugaran",
+  };
+
+  const availableFacilitiesList = ["wifi", "pool", "restaurant", "gym"];
 
   return (
     <div className="admin-layout">
@@ -200,7 +201,6 @@ const AdminHotelPage: React.FC = () => {
         <AdminTopbar showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} placeholder="Cari nama hotel..." />
 
         <div className="hotel-content-grid">
-          {/* DAFTAR HOTEL */}
           <div className="hotel-list-section">
             <div className="page-header">
               <div className="title-area">
@@ -214,7 +214,7 @@ const AdminHotelPage: React.FC = () => {
 
             <div className="table-card-container">
               {isLoading ? (
-                <p style={{ padding: "20px", textAlign: "center", color: "#8f9bba" }}>Memuat data dari database...</p>
+                <p style={{ padding: "30px", textAlign: "center", color: "#64748b", fontWeight: "600" }}>Memuat data dari database...</p>
               ) : (
                 <>
                   <table className="hotel-table">
@@ -245,7 +245,7 @@ const AdminHotelPage: React.FC = () => {
                               <FaStar className="text-yellow" /> {hotel.rating}
                             </div>
                           </td>
-                          <td className="fw-bold text-dark">{hotel.rooms}</td>
+                          <td className="fw-bold text-dark">{hotel.totalRooms}</td>
                           <td>
                             <div className="action-buttons">
                               <button className="btn-icon edit" onClick={(e) => handleOpenEdit(hotel, e)}>
@@ -260,7 +260,7 @@ const AdminHotelPage: React.FC = () => {
                       ))}
                       {currentTableData.length === 0 && (
                         <tr>
-                          <td colSpan={5} style={{ textAlign: "center", padding: "20px" }}>
+                          <td colSpan={5} style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
                             Tidak ada data hotel ditemukan.
                           </td>
                         </tr>
@@ -268,8 +268,7 @@ const AdminHotelPage: React.FC = () => {
                     </tbody>
                   </table>
 
-                  {/* PAGINATION PANEL */}
-                  <div className="table-footer" style={{ display: "flex", justifyContent: "between", alignItems: "center", padding: "15px" }}>
+                  <div className="table-footer">
                     <span className="text-gray sm-text">
                       Halaman {currentPage} dari {totalPages || 1} ({filteredHotels.length} total hotel)
                     </span>
@@ -292,7 +291,6 @@ const AdminHotelPage: React.FC = () => {
             </div>
           </div>
 
-          {/* PRATINJAU HOTEL */}
           <div className="hotel-preview-section">
             <div className="preview-header">
               <h3>Pratinjau Hotel</h3>
@@ -313,7 +311,7 @@ const AdminHotelPage: React.FC = () => {
                   <p className="preview-desc">{selectedHotel.description || "Belum ada deskripsi."}</p>
                   <div className="preview-stats-grid">
                     <div className="p-stat">
-                      <span>{selectedHotel.rooms || 0}</span>
+                      <span>{selectedHotel.totalRooms || 0}</span>
                       <label>KAMAR</label>
                     </div>
                     <div className="p-stat">
@@ -329,7 +327,7 @@ const AdminHotelPage: React.FC = () => {
                     {selectedHotel.facilities && selectedHotel.facilities.length > 0 ? (
                       selectedHotel.facilities.map((fac, idx) => (
                         <span key={idx} className="tag">
-                          {getFacilityIcon(fac)} {fac}
+                          {getFacilityIcon(fac)} {facilityLabelMap[fac] ?? fac}
                         </span>
                       ))
                     ) : (
@@ -339,44 +337,49 @@ const AdminHotelPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <p style={{ padding: "20px", textAlign: "center", color: "#8f9bba" }}>Pilih hotel untuk melihat pratinjau</p>
+              <div className="preview-card" style={{ padding: "40px 20px", textAlign: "center", color: "#64748b" }}>
+                Pilih hotel dari tabel untuk melihat pratinjau detail.
+              </div>
             )}
           </div>
         </div>
       </main>
 
-      {/* MODAL CRUD */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>{modalType === "add" ? "Tambah Hotel Baru" : "Edit Hotel"}</h2>
+            <div className="modal-header">
+              <h2>{modalType === "add" ? "Tambah Hotel Baru" : "Edit Hotel"}</h2>
+            </div>
+            
             <div className="modal-scroll-area">
               <h3 className="section-title">Informasi Dasar</h3>
               <div className="form-group-row">
                 <div className="form-group">
                   <label>Nama Hotel</label>
-                  <input type="text" value={formData.name || ""} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                  <input type="text" placeholder="Cth: Hotel Indonesia Kempinski" value={formData.name || ""} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                 </div>
                 <div className="form-group">
                   <label>Kategori</label>
-                  <input type="text" value={formData.category || ""} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+                  <input type="text" placeholder="Cth: Bintang 5" value={formData.category || ""} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
                 </div>
               </div>
               <div className="form-group">
                 <label>Lokasi Lengkap</label>
-                <input type="text" value={formData.location || ""} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+                <input type="text" placeholder="Masukkan alamat lengkap hotel" value={formData.location || ""} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
               </div>
               <div className="form-group">
                 <label>Tentang Akomodasi (Deskripsi)</label>
-                <textarea rows={4} value={formData.description || ""} onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
+                <textarea rows={4} placeholder="Tuliskan deskripsi menarik tentang hotel ini..." value={formData.description || ""} onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
               </div>
+              
               <div className="form-group-row">
                 <div className="form-group">
-                  <label>Jumlah Kamar Total</label>
-                  <input type="number" value={formData.rooms || ""} onChange={(e) => setFormData({ ...formData, rooms: Number(e.target.value) })} />
+                  <label>Jumlah Kamar</label>
+                  <input type="number" value={formData.totalRooms || ""} onChange={(e) => setFormData({ ...formData, totalRooms: Number(e.target.value) })} />
                 </div>
                 <div className="form-group">
-                  <label>Jumlah Restoran</label>
+                  <label>Jml Restoran</label>
                   <input type="number" value={formData.restoCount || ""} onChange={(e) => setFormData({ ...formData, restoCount: Number(e.target.value) })} />
                 </div>
                 <div className="form-group">
@@ -384,55 +387,64 @@ const AdminHotelPage: React.FC = () => {
                   <input type="number" step="0.1" value={formData.rating || ""} onChange={(e) => setFormData({ ...formData, rating: Number(e.target.value) })} />
                 </div>
               </div>
+              
               <div className="form-group" style={{ marginTop: "15px" }}>
                 <label>Fasilitas Populer</label>
                 <div className="checkbox-group">
                   {availableFacilitiesList.map((fac) => (
                     <label key={fac} className="checkbox-label">
                       <input type="checkbox" checked={formData.facilities?.includes(fac) || false} onChange={() => handleFacilityChange(fac)} />
-                      {fac}
+                      {facilityLabelMap[fac]}
                     </label>
                   ))}
                 </div>
               </div>
+              
               <hr className="modal-divider" />
-              <h3 className="section-title">Media & Foto</h3>
+              
+              <h3 className="section-title">Media & Foto Utama</h3>
               <div className="form-group">
-                <label>Thumbnail Utama (1 Foto)</label>
                 <input type="file" accept="image/*" className="file-input" onChange={handleThumbnailUpload} />
-                {isUploadingImg && <p style={{ color: "#4318ff", fontSize: "12px" }}>Mengunggah gambar ke server...</p>}
+                {isUploadingImg && <p className="upload-status text-primary">Mengunggah gambar ke server, mohon tunggu...</p>}
                 {formData.img && !isUploadingImg && (
                   <div className="upload-preview">
                     <img src={formData.img} alt="Thumbnail" />
                   </div>
                 )}
               </div>
+              
               <hr className="modal-divider" />
+              
               <div className="section-header-flex">
-                <h3 className="section-title">Tipe Kamar & Harga</h3>
+                <h3 className="section-title">Manajemen Tipe Kamar</h3>
                 <button className="btn-add-sm" onClick={handleAddRoomType}>
-                  + Tambah Tipe Kamar
+                  <FaPlus /> Tambah Tipe Kamar
                 </button>
               </div>
+              
               {formData.roomTypes && formData.roomTypes.length === 0 ? (
-                <p className="empty-text">Belum ada tipe kamar yang ditambahkan.</p>
+                <div className="empty-text">Belum ada tipe kamar. Klik tombol tambah di atas.</div>
               ) : (
                 <div className="room-types-list">
                   {formData.roomTypes?.map((room) => (
                     <div key={room.id} className="room-type-row">
                       <div className="form-group">
                         <label>Nama Kamar</label>
-                        <input type="text" value={room.name} onChange={(e) => handleRoomTypeChange(room.id, "name", e.target.value)} />
+                        <input type="text" placeholder="Cth: Deluxe Room" value={room.name} onChange={(e) => handleRoomTypeChange(room.id, "name", e.target.value)} />
                       </div>
                       <div className="form-group">
                         <label>Tempat Tidur</label>
-                        <input type="text" value={room.bed} onChange={(e) => handleRoomTypeChange(room.id, "bed", e.target.value)} />
+                        <input type="text" placeholder="Cth: 1 Double Bed" value={room.bed} onChange={(e) => handleRoomTypeChange(room.id, "bed", e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label>URL Gambar</label>
+                        <input type="text" placeholder="https://..." value={room.image} onChange={(e) => handleRoomTypeChange(room.id, "image", e.target.value)} />
                       </div>
                       <div className="form-group">
                         <label>Harga (Rp)</label>
-                        <input type="number" value={room.price || ""} onChange={(e) => handleRoomTypeChange(room.id, "price", Number(e.target.value))} />
+                        <input type="number" placeholder="0" value={room.price || ""} onChange={(e) => handleRoomTypeChange(room.id, "price", Number(e.target.value))} />
                       </div>
-                      <button className="btn-remove-row" onClick={() => handleRemoveRoomType(room.id)}>
+                      <button className="btn-remove-row" title="Hapus Kamar" onClick={() => handleRemoveRoomType(room.id)}>
                         <FaTrash />
                       </button>
                     </div>
@@ -440,12 +452,13 @@ const AdminHotelPage: React.FC = () => {
                 </div>
               )}
             </div>
+
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setIsModalOpen(false)}>
-                Batal
+                Batalkan
               </button>
               <button className="btn-save" onClick={handleSave}>
-                Simpan Data
+                Simpan Hotel
               </button>
             </div>
           </div>

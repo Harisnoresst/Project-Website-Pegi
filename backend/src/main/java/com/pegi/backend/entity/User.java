@@ -24,8 +24,16 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // --- TETEP ADA: FIELD UNTUK REGISTRASI ---
     @Column(nullable = false)
-    private String name;
+    private String fullName;      // Nama Lengkap
+
+    @Column(nullable = false)
+    private String name;          // Nama Panggilan
+
+    @Column(nullable = false, unique = true)
+    private String username;      // Username untuk login
+    // -----------------------------------------
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -34,8 +42,27 @@ public class User implements UserDetails {
     private String password;
 
     private String bio;
-    private String phone;
+    
+    @Column(nullable = false)
+    private String phone;         // No Telepon wajib isi pas daftar
+    
     private String avatar;
+
+    // --- DIPERTAHANKAN: Cukup status verifikasinya saja ---
+    @Column(nullable = false)
+    private boolean isVerified = false;   // true kalau akun sudah aktif/lolos verifikasi
+
+    // --- FITUR TRAVEL PARTNER & COCOK-COCOKAN ---
+    private String city;              
+    private String targetDestination; 
+    private String travelDate;        
+    private boolean isSearchingPartner = false; 
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "interest")
+    private List<String> interests;
+    // ---------------------------------------------
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
@@ -47,7 +74,7 @@ public class User implements UserDetails {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // ===== UserDetails (wajib untuk Spring Security) =====
+    // ===== UserDetails (Spring Security) =====
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -55,8 +82,8 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return email; // email dipakai sebagai username
+    public String getUsername() { 
+        return this.username; // Spring Security membaca field username asli
     }
 
     @Override
@@ -72,5 +99,7 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { 
+        return isVerified; // Akun cuma bisa dipakai kalau isVerified = true
+    }
 }

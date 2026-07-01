@@ -34,16 +34,16 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 2. KUNCI UTAMA: Izinkan request OPTIONS (Preflight dari browser)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
-                // Endpoint publik
                 .requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login",
-                    "/api/auth/verify-otp",   
-                    "/api/auth/resend-otp",  
-                    "/api/auth/request-otp",   
+                    "/api/auth/**",       
+                    "/api/profile",       
                     "/api/reviews/**",
+                    "/api/payments/**",
+                    "/api/files/**",
+                    "/api/destinations/**",
+                    "/api/transports/**",
+                    "/api/promos/**",
                     "/error"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

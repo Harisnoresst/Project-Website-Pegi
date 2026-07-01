@@ -1,10 +1,12 @@
 // src/types/WishlistType.ts
 
 export interface WishlistType {
-  id: string; // Bisa juga number, tergantung struktur database Backend
-  category: string;
-  title: string;
-  location: string;
-  imageUrl: string;
-  badgeColor: string;
+  id: string;
+  itemId: number | string;
+  itemType: string;   // "destination", "hotel", dll
+  itemName: string;
+  // Field tambahan untuk display (opsional, mungkin kosong tergantung backend)
+  itemImage?: string;
+  itemLocation?: string;
+  createdAt?: string;
 }

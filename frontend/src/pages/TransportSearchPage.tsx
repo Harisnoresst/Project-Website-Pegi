@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   MdDirectionsBus,
   MdTrain,
@@ -14,6 +15,19 @@ import { getTransports } from "../services/transportService";
 import type { TransportType } from "../types/TransportType";
 
 import "./TransportSearchPage.css";
+
+// Format "2024-10-24" -> "Kamis, 24 Okt 2024". Kalau tanggal kosong/invalid, balikin "-".
+const formatTanggal = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const TransportSearchPage: React.FC = () => {
   const [transports, setTransports] = useState<TransportType[]>([]);
@@ -30,6 +44,13 @@ const TransportSearchPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 4;
+
+  // Baca query param dari URL hasil pencarian di HomePage (?from=...&to=...&date=...&adult=...)
+  const params = new URLSearchParams(window.location.search);
+  const fromParam = params.get("from") || "";
+  const toParam = params.get("to") || "";
+  const dateParam = params.get("date") || "";
+  const adultParam = params.get("adult") || "1";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,6 +102,19 @@ const TransportSearchPage: React.FC = () => {
   const filteredTransports = useMemo(() => {
     let data = [...transports];
 
+    // Filter berdasarkan kota asal & tujuan dari hasil pencarian (kalau diisi user)
+    if (fromParam) {
+      data = data.filter((transport) =>
+        (transport.departureCity ?? "").toLowerCase().includes(fromParam.toLowerCase()),
+      );
+    }
+
+    if (toParam) {
+      data = data.filter((transport) =>
+        (transport.arrivalCity ?? "").toLowerCase().includes(toParam.toLowerCase()),
+      );
+    }
+
     if (selectedTypes.length > 0) {
       data = data.filter((transport) => selectedTypes.includes(transport.type));
     }
@@ -101,7 +135,7 @@ const TransportSearchPage: React.FC = () => {
     }
 
     return data;
-  }, [transports, selectedTypes, selectedTime, sortBy]);
+  }, [transports, selectedTypes, selectedTime, sortBy, fromParam, toParam]);
 
   const totalPages = Math.ceil(filteredTransports.length / itemsPerPage);
 
@@ -127,26 +161,28 @@ const TransportSearchPage: React.FC = () => {
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
       <div className="transport-search-page">
         <div className="transport-search-header">
           <div className="search-summary">
             <div>
               <span>Rute Perjalanan</span>
 
-              <strong>Jakarta ➜ Bandung</strong>
+              <strong>
+                {fromParam || "Semua Asal"} ➜ {toParam || "Semua Tujuan"}
+              </strong>
             </div>
 
             <div>
               <span>Tanggal</span>
 
-              <strong>Kamis, 24 Okt 2024</strong>
+              <strong>{formatTanggal(dateParam)}</strong>
             </div>
 
             <div>
               <span>Penumpang</span>
 
-              <strong>1 Dewasa</strong>
+              <strong>{adultParam} Dewasa</strong>
             </div>
           </div>
 
@@ -403,6 +439,7 @@ const TransportSearchPage: React.FC = () => {
           </main>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

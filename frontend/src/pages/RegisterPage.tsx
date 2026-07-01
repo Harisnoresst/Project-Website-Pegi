@@ -1,14 +1,15 @@
-// src/pages/RegisterPage.tsx
 import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaApple } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // Menggunakan navigate untuk pindah halaman
-import axios from "axios"; 
+import { useNavigate } from "react-router-dom";
 import "./RegisterPage.css";
-import NavbarGuest from "../components/NavbarGuest";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,42 +18,43 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   
-  // State untuk menampilkan pesan sukses/error di UI
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // State & Logika untuk OTP
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(120); // 120 detik = 02:00
+  const [timeLeft, setTimeLeft] = useState(120); 
 
   const navigate = useNavigate();
 
-  // Efek untuk menjalankan hitung mundur saat modal terbuka
   useEffect(() => {
     if (!showOtpModal || timeLeft <= 0) return;
-
     const intervalId = setInterval(() => {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
-
     return () => clearInterval(intervalId);
   }, [showOtpModal, timeLeft]);
 
-  // Fungsi untuk memformat detik menjadi MM:SS (Contoh: 119 -> 01:59)
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
+    const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
     const secs = (seconds % 60).toString().padStart(2, "0");
     return `${minutes}:${secs}`;
   };
 
-  // Fungsi saat pengguna klik "Kirim Ulang Kode OTP"
+  const maskIdentifier = (id: string) => {
+    if (!id) return "";
+    if (id.includes("@")) {
+      const [localPart, domain] = id.split("@");
+      if (localPart.length <= 3) return id;
+      return `${localPart.substring(0, 3)}${"*".repeat(localPart.length - 3)}@${domain}`;
+    }
+    return id;
+  };
+
   const handleResendOtp = async () => {
-    setTimeLeft(120); // Reset timer kembali ke 2 menit
-    setOtp(""); // Kosongkan kotak input OTP
+    setTimeLeft(120); 
+    setOtp(""); 
     setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
@@ -61,7 +63,7 @@ const RegisterPage: React.FC = () => {
       const response = await fetch("http://localhost:8080/api/auth/resend-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ identifier: email }), 
       });
 
       if (!response.ok) {
@@ -70,22 +72,36 @@ const RegisterPage: React.FC = () => {
         setSuccessMsg("Kode OTP baru berhasil dikirim!");
       }
     } catch (error) {
-      console.error("Error API:", error);
-      setErrorMsg("Tidak terhubung ke server, namun timer tetap direset (Mode Simulasi).");
+      setErrorMsg("Tidak terhubung ke server.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOtpChange = (index: number, value: string) => {
+  // 🌟 LOGIKA AUTO-ADVANCE OTP
+  const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     if (/^\d?$/.test(value)) {
       const newOtp = otp.split("");
       newOtp[index] = value;
       setOtp(newOtp.join(""));
+
+      // Pindah ke kotak selanjutnya jika ada input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`otp-input-${index + 1}`);
+        if (nextInput) nextInput.focus();
+      }
     }
   };
 
-  // Saat klik Daftar Akun
+  // 🌟 LOGIKA BACKSPACE OTP
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-input-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -103,14 +119,12 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 🔥 PERBAIKAN: Menggunakan request-otp untuk pendaftaran awal, BUKAN resend-otp
       const response = await fetch("http://localhost:8080/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, username }),
       });
 
-      // 🌟 AMAN DARI CRASH: Baca respon sebagai teks mentah dulu agar tidak memicu JSON parse error
       const responseText = await response.text();
       let errorData: any = {};
       try {
@@ -120,60 +134,75 @@ const RegisterPage: React.FC = () => {
       }
 
       if (response.ok) {
-        // Pengecekan aman jika status OK tapi ada pesan error tersembunyi
-        if (
-          errorData.status === "error" || 
-          errorData.message?.toLowerCase().includes("terdaftar") || 
-          errorData.message?.toLowerCase().includes("exist")
-        ) {
-          setErrorMsg(errorData.message || "Email sudah terdaftar! Harap gunakan email lain.");
+        if (errorData.status === "error") {
+          setErrorMsg(errorData.message);
           setIsLoading(false);
           return;
         }
-
-        setTimeLeft(120); // Mulai timer dari awal
-        setShowOtpModal(true); // Munculkan popup resmi
+        setTimeLeft(120); 
+        setShowOtpModal(true); 
       } else {
-        const isEmailRegistered = 
-          response.status === 409 || 
-          response.status === 400 || 
-          errorData.message?.toLowerCase().includes("terdaftar") ||
-          responseText.toLowerCase().includes("terdaftar");
-
-        if (isEmailRegistered) {
-          setErrorMsg("Email sudah terdaftar! Harap gunakan email lain.");
-        } else {
-          setErrorMsg(errorData.message || "Gagal mengirim OTP.");
-        }
+        setErrorMsg(errorData.message || "Gagal mengirim OTP.");
       }
     } catch (error) {
-      console.error("Error API:", error);
-      // 🔥 PINTU BELAKANG DITUTUP: Jika error/gagal koneksi, tampilkan pesan error asli dan JANGAN buka modal OTP!
       setErrorMsg("Gagal terhubung ke Server. Pastikan backend Anda sudah aktif.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Saat klik Verifikasi di Modal OTP
-  const handleVerifyAndRegister = () => {
+  // 🌟 VERIFIKASI SEKALIGUS LANGSUNG LOGIN
+  const handleVerifyAndRegister = async () => {
     setIsLoading(true);
     setErrorMsg("");
 
-    // Simulasi mengecek ke Database selama 1.5 detik
-    setTimeout(() => {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName, name, username, email, phone, password, otp
+        }),
+      });
+
+      const responseText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonErr) {}
+
+      if (response.ok && data.status === "success") {
+        // Simpan token ke localStorage
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          // Simpan data user tambahan kalau mau dipake di Navbar
+          localStorage.setItem("user", JSON.stringify({
+            name: data.name,
+            username: data.username,
+            role: data.role
+          }));
+        }
+
+        setShowOtpModal(false);
+        navigate("/"); // Langsung lempar ke Dashboard User
+      } else {
+        setErrorMsg(data.message || "Registrasi gagal, periksa kembali data Anda.");
+        setShowOtpModal(false); 
+      }
+    } catch (error) {
+      setErrorMsg("Gagal terhubung ke server.");
+    } finally {
       setIsLoading(false);
-      setShowOtpModal(false);
-      navigate("/"); // Menggunakan React Router navigate menuju Dashboard
-    }, 1500);
+    }
   };
 
   return (
     <>
-      <NavbarGuest />
+      <Navbar />
 
       <div className="register-wrapper">
         <div className="register-left">
+          <div className="register-left-fade"></div>
           <div className="glass-card">
             <h3>Perjalanan yang Lebih Bermakna.</h3>
             <p>Jelajahi keindahan Indonesia dengan kenyamanan yang belum pernah ada sebelumnya. Dari hotel mewah hingga transportasi yang handal, Pegi siap menemani setiap langkah Anda.</p>
@@ -207,7 +236,6 @@ const RegisterPage: React.FC = () => {
               <button className="tab-btn active">Daftar</button>
             </div>
 
-            {/* Area Pesan Notifikasi Sukses / Error */}
             {errorMsg && (
               <div style={{ color: "red", marginBottom: "15px", fontSize: "14px", backgroundColor: "#ffe6e6", padding: "10px", borderRadius: "5px" }}>
                 {errorMsg}
@@ -219,45 +247,59 @@ const RegisterPage: React.FC = () => {
               </div>
             )}
 
-            {/* Form */}
             <form className="auth-form" onSubmit={handleSubmit}>
+              
               <div className="input-group">
                 <label className="input-label">Nama Lengkap</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                   </span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Nama lengkap Anda"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
+                  <input type="text" className="form-control" placeholder="Nama lengkap Anda" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                 </div>
               </div>
 
-              <div className="input-group">
-                <label className="input-label">Alamat Email</label>
-                <div className="input-wrapper">
-                  <span className="input-icon-left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                  </span>
-                  <input
-                    type="email"
-                    className="form-control"
-                    placeholder="nama@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+              <div className="input-grid">
+                <div className="input-group">
+                  <label className="input-label">Nama Panggilan</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon-left">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <input type="text" className="form-control" placeholder="Panggilan" value={name} onChange={(e) => setName(e.target.value)} required />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Username</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon-left">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    </span>
+                    <input type="text" className="form-control" placeholder="username_unik" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                  </div>
+                </div>
+              </div>
+
+              <div className="input-grid">
+                <div className="input-group">
+                  <label className="input-label">Alamat Email</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon-left">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </span>
+                    <input type="email" className="form-control" placeholder="nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">No. Telepon</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon-left">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    </span>
+                    <input type="tel" className="form-control" placeholder="0812xxx" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                  </div>
                 </div>
               </div>
 
@@ -265,29 +307,11 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Kata Sandi</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                   </span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-control"
-                    placeholder="Min. 8 karakter"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="input-icon-right"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
+                  <input type={showPassword ? "text" : "password"} className="form-control" placeholder="Min. 8 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <button type="button" className="input-icon-right" onClick={() => setShowPassword(!showPassword)} tabIndex={-1}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
               </div>
@@ -296,29 +320,11 @@ const RegisterPage: React.FC = () => {
                 <label className="input-label">Konfirmasi Kata Sandi</label>
                 <div className="input-wrapper">
                   <span className="input-icon-left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                   </span>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    className="form-control"
-                    placeholder="Ketik ulang kata sandi"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="input-icon-right"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    tabIndex={-1}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
+                  <input type={showConfirmPassword ? "text" : "password"} className="form-control" placeholder="Ketik ulang kata sandi" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                  <button type="button" className="input-icon-right" onClick={() => setShowConfirmPassword(!showConfirmPassword)} tabIndex={-1}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
               </div>
@@ -326,10 +332,7 @@ const RegisterPage: React.FC = () => {
               <label className="checkbox-group">
                 <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} required />
                 <span className="checkbox-label">
-                  Saya menyetujui{" "}
-                  <a href="#terms" className="text-purple">Syarat & Ketentuan</a>{" "}
-                  serta{" "}
-                  <a href="#privacy" className="text-purple">Kebijakan Privasi</a>
+                  Saya menyetujui <a href="#terms" className="text-purple">Syarat & Ketentuan</a> serta <a href="#privacy" className="text-purple">Kebijakan Privasi</a>
                 </span>
               </label>
 
@@ -345,12 +348,10 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div className="social-login-group">
-              <button className="btn-social" type="button">
+              <button className="btn-social" type="button" style={{ width: '100%' }}>
                 <FcGoogle /> Google
               </button>
-              <button className="btn-social" type="button">
-                <FaApple /> Apple
-              </button>
+              {/* Tombol Apple udah dihilangkan */}
             </div>
 
             <p className="login-prompt">
@@ -369,14 +370,24 @@ const RegisterPage: React.FC = () => {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
-            <h2>Verifikasi Pendaftaran</h2>
-            <p>
-              Demi keamanan, masukkan 6 digit kode OTP yang telah dikirimkan ke alamat email anda <strong>({email.substring(0, 3)}***@gmail.com)</strong>
+            <h2 style={{ fontSize: "20px", marginBottom: "8px" }}>Verifikasi Pendaftaran</h2>
+            <p style={{ fontSize: "14px", color: "#4B5563" }}>
+              Masukkan 6 digit kode OTP yang telah dikirimkan ke email Anda <br/>
+              <strong>({maskIdentifier(email)})</strong>
             </p>
 
             <div className="otp-inputs">
               {[...Array(6)].map((_, i) => (
-                <input key={i} type="text" maxLength={1} value={otp[i] || ""} onChange={(e) => handleOtpChange(i, e.target.value)} disabled={isLoading} />
+                <input 
+                  key={i} 
+                  id={`otp-input-${i}`} /* ID penting buat auto-focus */
+                  type="text" 
+                  maxLength={1} 
+                  value={otp[i] || ""} 
+                  onChange={(e) => handleOtpChange(i, e)} 
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  disabled={isLoading} 
+                />
               ))}
             </div>
 
@@ -393,11 +404,12 @@ const RegisterPage: React.FC = () => {
             </button>
 
             <button className="btn-back-register" onClick={() => setShowOtpModal(false)} disabled={isLoading}>
-              ← Kembali ke halaman Daftar
+              ← Kembali
             </button>
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 };
