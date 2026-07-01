@@ -86,7 +86,7 @@ const DestinationDetailPage: React.FC = () => {
       }
     });
   };
-
+  console.log("destination.priceValue:", destination.priceValue, "totalPrice:", totalPrice);
   return (
     <>
       <Navbar />

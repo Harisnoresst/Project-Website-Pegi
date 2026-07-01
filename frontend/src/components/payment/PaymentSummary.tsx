@@ -69,6 +69,7 @@ const PaymentSummary: React.FC<Props> = ({
   const handleApplyPromo = async (category: "Hotel" | "Tiket Pesawat", baseSubtotal: number) => {
     if (!promoCode.trim()) {
       setPromoMessage("Masukkan kode promo terlebih dahulu.");
+      console.log("baseSubtotal dikirim:", baseSubtotal);
       return;
     }
 
@@ -117,8 +118,6 @@ const PaymentSummary: React.FC<Props> = ({
       payload.hotel = { id: hotelId };
       payload.totalGuests = roomCount || 1;
     } else if (transportId) {
-      // Booking entity belum punya relasi langsung ke Transport,
-      // jadi booking tetap dibuat tanpa relasi spesifik (fallback "Transportasi" di backend)
       payload.totalGuests = seats.length || 1;
     }
 
@@ -191,8 +190,6 @@ const PaymentSummary: React.FC<Props> = ({
             await createBookingAfterPayment(amount);
           } catch (err) {
             console.error("Booking gagal disimpan setelah pembayaran:", err);
-            // Pembayaran Midtrans sudah berhasil walau booking gagal tersimpan,
-            // tetap arahkan ke halaman sukses supaya user tidak bingung
           }
           navigate("/payment-success");
         },
@@ -261,10 +258,8 @@ const PaymentSummary: React.FC<Props> = ({
     whiteSpace: "nowrap",
   };
 
-  const PromoInputBlock: React.FC<{ category: "Hotel" | "Tiket Pesawat"; baseSubtotal: number }> = ({
-    category,
-    baseSubtotal,
-  }) => (
+  // 👇 INI YANG DIGANTI: Diubah jadi fungsi biasa, bukan komponen React
+  const renderPromoInputBlock = (category: "Hotel" | "Tiket Pesawat", baseSubtotal: number) => (
     <>
       <div style={promoBoxStyle}>
         <input
@@ -322,7 +317,8 @@ const PaymentSummary: React.FC<Props> = ({
 
         <hr style={{ border: "none", borderTop: "1px dashed #E5E7EB", margin: "16px 0" }} />
 
-        <PromoInputBlock category="Tiket Pesawat" baseSubtotal={totalPrice} />
+        {/* Panggil fungsinya di sini! */}
+        {renderPromoInputBlock("Tiket Pesawat", totalPrice)}
 
         <hr style={{ border: "none", borderTop: "1px dashed #E5E7EB", margin: "16px 0" }} />
 
@@ -358,7 +354,7 @@ const PaymentSummary: React.FC<Props> = ({
   }
 
   // ==========================================
-  // 2. TAMPILAN JIKA BOOKING TRANSPORTASI (tanpa promo, sesuai keputusan)
+  // 2. TAMPILAN JIKA BOOKING TRANSPORTASI 
   // ==========================================
   if (transportId) {
     if (isLoadingTransport || !transport) {
@@ -454,7 +450,8 @@ const PaymentSummary: React.FC<Props> = ({
 
         <hr style={{ border: "none", borderTop: "1px dashed #E5E7EB", margin: "16px 0" }} />
 
-        <PromoInputBlock category="Hotel" baseSubtotal={hotelPrice} />
+        {/* Panggil fungsinya di sini! */}
+        {renderPromoInputBlock("Hotel", hotelPrice)}
 
         <hr style={{ border: "none", borderTop: "1px dashed #E5E7EB", margin: "16px 0" }} />
 
